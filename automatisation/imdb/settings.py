@@ -67,10 +67,10 @@ ITEM_PIPELINES = {
     "imdb.pipelines.NewFilmsPipeline": 300,
     'imdb.pipelines.MySQLStorePipeline': 800,
 }
-MYSQL_USER = 'cinapps_user'
-MYSQL_PASSWORD = 'cinapps888'
+MYSQL_USER = 'kevin'
+MYSQL_PASSWORD = 'kevinpass'
 MYSQL_HOST = 'localhost'
-MYSQL_DATABASE = 'cinapps_db'
+MYSQL_DATABASE = 'bdd_projet'
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
 #AUTOTHROTTLE_ENABLED = True
@@ -96,3 +96,6 @@ MYSQL_DATABASE = 'cinapps_db'
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+# settings.py
+LOG_LEVEL = 'DEBUG'

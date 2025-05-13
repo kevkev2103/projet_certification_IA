@@ -1,9 +1,13 @@
-fastapi 
-uvicorn 
-sqlmodel 
-mysql-connector-python 
-python-dotenv 
-passlib 
-pyjwt
-python-jose
-python-multipart
+fastapi==0.115.12
+uvicorn==0.34.2
+sqlmodel==0.0.24
+mysql-connector-python==9.3.0
+python-dotenv==1.1.0
+passlib==1.7.4
+PyJWT==2.10.1
+python-jose==3.4.0
+python-multipart==0.0.20
+
+# Pour garder pyasn1 < 0.5 (compatible python-jose)  
+pyasn1>=0.4.1,<0.5.0  
+pyasn1-modules>=0.4.1,<0.5.0  
