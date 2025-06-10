@@ -69,8 +69,8 @@ ITEM_PIPELINES = {
 }
 MYSQL_USER = 'kevin'
 MYSQL_PASSWORD = 'kevinpass'
-MYSQL_HOST = 'localhost'
-MYSQL_DATABASE = 'bdd_projet'
+MYSQL_HOST = 'localhost'  # On utilise localhost car le script tourne en dehors de Docker
+MYSQL_DATABASE = 'cinapps'    # Nom de la base défini dans .env
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
 #AUTOTHROTTLE_ENABLED = True
