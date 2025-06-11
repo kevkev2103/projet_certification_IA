@@ -7,6 +7,7 @@ passlib==1.7.4
 PyJWT==2.10.1
 python-jose==3.4.0
 python-multipart==0.0.20
+pymysql==1.1.0
 
 # Pour garder pyasn1 < 0.5 (compatible python-jose)  
 pyasn1>=0.4.1,<0.5.0  

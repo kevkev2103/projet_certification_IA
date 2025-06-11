@@ -4,9 +4,9 @@ from jose import JWTError, jwt
 from sqlmodel import Session, select
 from datetime import timedelta
 from typing import Optional
-from app.security import verify_password, get_password_hash, create_access_token, SECRET_KEY, ALGORITHM
-from app.database import get_db
-from app.models import User
+from security import verify_password, get_password_hash, create_access_token, SECRET_KEY, ALGORITHM
+from database import get_db
+from models import User
 
 router = APIRouter()
 

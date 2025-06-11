@@ -1,0 +1,146 @@
+import mysql.connector
+import pandas as pd
+import requests
+from datetime import datetime
+import logging
+from typing import Dict, List
+import os
+from dotenv import load_dotenv
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Chargement des variables d'environnement
+load_dotenv()
+
+# Configuration de la base de données
+DB_CONFIG = {
+    'user': os.getenv('MYSQL_USER'),
+    'password': os.getenv('MYSQL_PASSWORD'),
+    'host': os.getenv('MYSQL_HOST'),
+    'database': os.getenv('MYSQL_DATABASE')
+}
+
+# Configuration de l'API
+API_URL = "http://localhost:8001/prediction/"
+
+def get_db_connection():
+    """Établit une connexion à la base de données"""
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        return conn
+    except mysql.connector.Error as e:
+        logger.error(f"Erreur de connexion à la base de données: {e}")
+        raise
+
+def get_unpredicted_films(conn) -> List[Dict]:
+    """Récupère les films sans prédiction"""
+    cursor = conn.cursor(dictionary=True)
+    query = """
+    SELECT f.*, 
+           GROUP_CONCAT(CASE WHEN p.role = 'acteur' THEN pe.nom END) as acteurs,
+           GROUP_CONCAT(CASE WHEN p.role = 'realisateur' THEN pe.nom END) as realisateurs
+    FROM table_films f
+    LEFT JOIN table_predictions pred ON f.id_film = pred.id_film
+    LEFT JOIN table_participations p ON f.id_film = p.id_film
+    LEFT JOIN table_personnes pe ON p.id_personne = pe.id_personne
+    WHERE pred.id_prediction IS NULL
+    GROUP BY f.id_film
+    """
+    cursor.execute(query)
+    films = cursor.fetchall()
+    cursor.close()
+    return films
+
+def calculate_scoring(acteurs: str, realisateurs: str) -> float:
+    """Calcule le score des acteurs et réalisateurs"""
+    # Pour l'instant, un calcul simple basé sur le nombre de personnes
+    acteurs_list = acteurs.split(',') if acteurs else []
+    realisateurs_list = realisateurs.split(',') if realisateurs else []
+    return len(acteurs_list) * 0.5 + len(realisateurs_list) * 1.0
+
+def prepare_prediction_data(film: Dict) -> Dict:
+    """Prépare les données pour l'API de prédiction"""
+    
+    # Gestion de la date_sortie qui peut être un objet date ou une string
+    if film['date_sortie']:
+        if isinstance(film['date_sortie'], str):
+            year = datetime.strptime(film['date_sortie'], '%Y-%m-%d').year
+        else:  # Si c'est déjà un objet date
+            year = film['date_sortie'].year
+    else:
+        year = datetime.now().year
+    
+    return {
+        "budget": float(film['budget']) if film['budget'] else 0.0,
+        "duree": film['duree'] if film['duree'] else 0,
+        "genre": film['genre'] if film['genre'] else "Inconnu",
+        "pays": film['pays'] if film['pays'] else "Inconnu",
+        "salles_premiere_semaine": film['salles'] if film['salles'] else 0,
+        "scoring_acteurs_realisateurs": calculate_scoring(film.get('acteurs'), film.get('realisateurs')),
+        "coeff_studio": 1,  # Valeur par défaut, à améliorer
+        "year": year
+    }
+
+def get_prediction(data: Dict) -> float:
+    """Obtient une prédiction de l'API"""
+    try:
+        response = requests.post(API_URL, json=data)
+        response.raise_for_status()
+        return response.json()['prediction']
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Erreur lors de l'appel à l'API: {e}")
+        raise
+
+def save_prediction(conn, film_id: int, prediction: float):
+    """Sauvegarde la prédiction dans la base de données"""
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO table_predictions (id_film, prediction_entrees) VALUES (%s, %s)",
+            (film_id, int(prediction))
+        )
+        conn.commit()
+    except mysql.connector.Error as e:
+        logger.error(f"Erreur lors de la sauvegarde de la prédiction: {e}")
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+
+def main():
+    """Fonction principale du pipeline"""
+    logger.info("Démarrage du pipeline de prédiction")
+    
+    try:
+        conn = get_db_connection()
+        films = get_unpredicted_films(conn)
+        logger.info(f"Nombre de films à traiter: {len(films)}")
+        
+        for film in films:
+            logger.info(f"Traitement du film: {film['titre']}")
+            
+            # Préparation des données
+            prediction_data = prepare_prediction_data(film)
+            logger.info(f"Données préparées: {prediction_data}")
+            
+            # Obtention de la prédiction
+            prediction = get_prediction(prediction_data)
+            logger.info(f"Prédiction obtenue: {prediction}")
+            
+            # Sauvegarde de la prédiction
+            save_prediction(conn, film['id_film'], prediction)
+            logger.info(f"Prédiction sauvegardée pour le film: {film['titre']}")
+        
+        logger.info("Pipeline terminé avec succès")
+        
+    except Exception as e:
+        logger.error(f"Erreur dans le pipeline: {e}")
+        raise
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+if __name__ == "__main__":
+    main() 
