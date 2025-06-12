@@ -24,7 +24,7 @@ DB_CONFIG = {
 
 # Configuration de l'API
 API_URL = "http://localhost:8001/prediction/"
-API_TOKEN = "eyJhbGciOiJIUzI1NiIsIn5cCI6IkpXVCJ9.eyJzdWIiOiJkZWJvcmFoIiwiZXhwIjoxNzQ0ODEzMTk4fQ.iggnTfZJMD1vCMYDQaEFkuGe1UG21dY-onMFY3a9FT0"
+API_TOKEN = os.getenv("API_TOKEN")  # Token depuis les variables d'environnement
 
 def get_db_connection():
     """Établit une connexion à la base de données"""
@@ -87,6 +87,9 @@ def prepare_prediction_data(film: Dict) -> Dict:
 def get_prediction(data: Dict) -> float:
     """Obtient une prédiction de l'API"""
     try:
+        if not API_TOKEN:
+            raise ValueError("API_TOKEN n'est pas défini dans les variables d'environnement")
+            
         headers = {
             "Authorization": f"Bearer {API_TOKEN}",
             "Content-Type": "application/json"

@@ -13,7 +13,7 @@ app = FastAPI()
 
 # Chargement du modèle avec gestion d'erreur
 try:
-    model, preprocessor = load_model()  # modèle ML préchargé
+    model_pipeline, preprocessor = load_model()  # modèle ML préchargé
     logger.info("Modèle et preprocessor chargés avec succès")
 except Exception as e:
     logger.error(f"Erreur lors du chargement du modèle : {str(e)}")
@@ -33,14 +33,14 @@ class PredictionRequest(BaseModel):
 async def root():
     return {"message": "Welcome to the Movie Box Office Prediction API"}
 
-@app.post("/prediction/")
+@app.post("/prediction/", dependencies=[Depends(verify_api_key)])
 async def predict(features: PredictionRequest):
     try:
         # Créer un DataFrame avec les features
         df = pd.DataFrame([features.dict()])
         
         # Le modèle est un pipeline complet, il fait le preprocessing automatiquement
-        prediction = model.predict(df)
+        prediction = model_pipeline.predict(df)
         
         return {
             "prediction": int(prediction[0])
