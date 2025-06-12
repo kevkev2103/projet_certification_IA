@@ -29,3 +29,6 @@ def credentials_exception():
         detail="Invalid authentication credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+# Alias pour la compatibilité avec main.py
+verify_api_key = get_current_user
