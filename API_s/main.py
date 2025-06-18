@@ -4,10 +4,20 @@ from model_utils import load_model
 import pandas as pd
 import logging
 from auth import verify_api_key
+from sqlalchemy import create_engine, text
+from dotenv import load_dotenv
+import os
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Chargement des variables d'environnement
+load_dotenv()
+
+# Configuration de la base de données
+DATABASE_URL = os.getenv("DATABASE_URL")
+engine = create_engine(DATABASE_URL)
 
 app = FastAPI()
 
@@ -20,6 +30,7 @@ except Exception as e:
     raise RuntimeError("Impossible de charger le modèle")
 
 class PredictionRequest(BaseModel):
+    id_film: int
     budget: float
     duree: int
     genre: str
@@ -41,9 +52,36 @@ async def predict(features: PredictionRequest):
         
         # Le modèle est un pipeline complet, il fait le preprocessing automatiquement
         prediction = model_pipeline.predict(df)
+        prediction_value = int(prediction[0])
+        
+        # Stocker la prédiction dans la base de données
+        with engine.connect() as conn:
+            # Insérer la prédiction
+            insert_prediction = text("""
+                INSERT INTO table_predictions (id_film, prediction_entrees)
+                VALUES (:id_film, :prediction)
+            """)
+            conn.execute(insert_prediction, {
+                "id_film": features.id_film,
+                "prediction": prediction_value
+            })
+            
+            # Mettre à jour le statut is_pred dans table_films
+            update_film = text("""
+                UPDATE table_films 
+                SET is_pred = TRUE 
+                WHERE id_film = :id_film
+            """)
+            conn.execute(update_film, {"id_film": features.id_film})
+            
+            conn.commit()
+        
+        logger.info(f"Prédiction stockée pour le film ID {features.id_film}")
         
         return {
-            "prediction": int(prediction[0])
+            "prediction": prediction_value,
+            "id_film": features.id_film,
+            "message": "Prédiction stockée avec succès"
         }
     
     except Exception as e:

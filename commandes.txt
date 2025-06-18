@@ -1,0 +1,17 @@
+# demarrer le docker
+docker-compose up -d
+
+# demarrer l'api crud
+cd cinapps_api
+uvicorn app.main:app --reload --port 8000
+
+#demarrer l'api IA
+cd API_s
+uvicorn main:app --reload --port 8001
+
+#lancer le scrapping
+cd automatisation
+scrapy crawl alloc_newfilms
+
+
+

@@ -1,8 +1,8 @@
 # app/main.py
 
 from fastapi import FastAPI
-from routes import films, auth
-from database import check_db_connection, init_db
+from .routes import films, auth
+from .database import check_db_connection, init_db
 
 app = FastAPI(
     title="Cinapps API",
@@ -13,8 +13,6 @@ app = FastAPI(
         {"name": "Films",  "description": "Gestion des films"},
     ],
 )
-
-init_db()
 
 @app.on_event("startup")
 def on_startup():

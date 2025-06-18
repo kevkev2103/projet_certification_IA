@@ -26,6 +26,27 @@ DB_CONFIG = {
 API_URL = "http://localhost:8001/prediction/"
 API_TOKEN = os.getenv("API_TOKEN")  # Token depuis les variables d'environnement
 
+def authenticate_and_get_token():
+    """S'authentifie automatiquement et récupère le token"""
+    try:
+        auth_url = "http://localhost:8000/auth/token"
+        auth_data = {
+            "username": "testuser",
+            "password": "test123"
+        }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        
+        response = requests.post(auth_url, data=auth_data, headers=headers)
+        response.raise_for_status()
+        
+        token = response.json()['access_token']
+        logger.info("✅ Authentification réussie")
+        return token
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"❌ Erreur d'authentification: {e}")
+        raise
+
 def get_db_connection():
     """Établit une connexion à la base de données"""
     try:
@@ -74,6 +95,7 @@ def prepare_prediction_data(film: Dict) -> Dict:
         year = datetime.now().year
     
     return {
+        "id_film": film['id_film'],
         "budget": float(film['budget']) if film['budget'] else 0.0,
         "duree": film['duree'] if film['duree'] else 0,
         "genre": film['genre'] if film['genre'] else "Inconnu",
@@ -85,37 +107,24 @@ def prepare_prediction_data(film: Dict) -> Dict:
     }
 
 def get_prediction(data: Dict) -> float:
-    """Obtient une prédiction de l'API"""
+    """Obtient une prédiction de l'API avec authentification automatique"""
     try:
-        if not API_TOKEN:
-            raise ValueError("API_TOKEN n'est pas défini dans les variables d'environnement")
-            
+        # Récupérer le token automatiquement
+        token = authenticate_and_get_token()
+        
         headers = {
-            "Authorization": f"Bearer {API_TOKEN}",
+            "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
         }
         response = requests.post(API_URL, json=data, headers=headers)
         response.raise_for_status()
-        return response.json()['prediction']
+        result = response.json()
+        logger.info(f"Réponse de l'API: {result}")
+        return result['prediction']
+        
     except requests.exceptions.RequestException as e:
         logger.error(f"Erreur lors de l'appel à l'API: {e}")
         raise
-
-def save_prediction(conn, film_id: int, prediction: float):
-    """Sauvegarde la prédiction dans la base de données"""
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "INSERT INTO table_predictions (id_film, prediction_entrees) VALUES (%s, %s)",
-            (film_id, int(prediction))
-        )
-        conn.commit()
-    except mysql.connector.Error as e:
-        logger.error(f"Erreur lors de la sauvegarde de la prédiction: {e}")
-        conn.rollback()
-        raise
-    finally:
-        cursor.close()
 
 def main():
     """Fonction principale du pipeline"""
@@ -133,13 +142,9 @@ def main():
             prediction_data = prepare_prediction_data(film)
             logger.info(f"Données préparées: {prediction_data}")
             
-            # Obtention de la prédiction
+            # Obtention de la prédiction (stockage automatique par l'API)
             prediction = get_prediction(prediction_data)
-            logger.info(f"Prédiction obtenue: {prediction}")
-            
-            # Sauvegarde de la prédiction
-            save_prediction(conn, film['id_film'], prediction)
-            logger.info(f"Prédiction sauvegardée pour le film: {film['titre']}")
+            logger.info(f"Prédiction obtenue et stockée: {prediction}")
         
         logger.info("Pipeline terminé avec succès")
         
