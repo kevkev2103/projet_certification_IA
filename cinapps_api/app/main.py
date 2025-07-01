@@ -11,6 +11,7 @@ app = FastAPI(
     openapi_tags=[
         {"name": "Auth",   "description": "Authentification avec JWT"},
         {"name": "Films",  "description": "Gestion des films"},
+        {"name": "Predictions", "description": "Gestion des prédictions d'entrées"},
     ],
 )
 

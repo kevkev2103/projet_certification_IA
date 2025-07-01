@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 class Film(SQLModel, table=True):
@@ -37,6 +37,14 @@ class Personne(SQLModel, table=True):
 class Participation(SQLModel, table=True):
     __tablename__ = "table_participations"
 
-    id_film: int = Field(foreign_key="films.id_film", primary_key=True)
-    id_personne: int = Field(foreign_key="Personnes.id_personne", primary_key=True)
+    id_film: int = Field(foreign_key="table_films.id_film", primary_key=True)
+    id_personne: int = Field(foreign_key="table_personnes.id_personne", primary_key=True)
     role: str  # 'acteur' ou 'realisateur'
+
+class Prediction(SQLModel, table=True):
+    __tablename__ = "table_predictions"
+
+    id_prediction: Optional[int] = Field(default=None, primary_key=True)
+    id_film: int = Field(foreign_key="table_films.id_film")
+    prediction_entrees: int
+    date_prediction: Optional[datetime] = Field(default_factory=datetime.now)

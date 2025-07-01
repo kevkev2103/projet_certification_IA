@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from ..database import get_db
-from ..models import Film, Personne, Participation
+from ..models import Film, Personne, Participation, Prediction
 from .auth import get_current_user 
 
 
@@ -72,3 +72,16 @@ def get_realisateurs_by_film(id_film: int, db: Session = Depends(get_db), curren
     )
     realisateurs = db.exec(query).all()
     return realisateurs
+
+# route pour récupérer toutes les prédictions
+@router.get("/predictions/", response_model=list[Prediction], status_code=status.HTTP_200_OK)
+def get_predictions(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    predictions = db.exec(select(Prediction)).all()
+    return predictions
+
+# route pour récupérer les prédictions d'un film spécifique
+@router.get("/films/{id_film}/predictions/", response_model=list[Prediction], status_code=status.HTTP_200_OK)
+def get_predictions_by_film(id_film: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    query = select(Prediction).where(Prediction.id_film == id_film)
+    predictions = db.exec(query).all()
+    return predictions

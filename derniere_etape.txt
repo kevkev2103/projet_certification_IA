@@ -1,0 +1,36 @@
+Je travaille sur le projet Cinapps, une application de prédiction d'entrées cinéma avec IA. 
+
+**Objectif principal** : 
+Scraper Allociné pour récupérer les sorties films de la semaine → Stocker en base MySQL → Prédire les entrées avec un modèle ML → Afficher dans une interface Streamlit avec classement par performance et authentification utilisateur.
+
+**Architecture actuelle** :
+- Scraping : Scrapy (automatisation/imdb/spiders/alloc_newfilms.py)
+- Base données : MySQL 8.0 via Docker
+- API CRUD : FastAPI (cinapps_api/) sur port 8000
+- API Prédiction ML : FastAPI (API_s/) sur port 8001 avec modèle CatBoost
+- Interface : Streamlit (streamlit/) sur port 8501
+- Authentification : JWT (testuser/test123)
+
+**Workflow des données** :
+1. Scraping Allociné → films de la semaine en base
+2. API ML → prédictions d'entrées stockées
+3. Streamlit → affichage classé (Top/Prometteurs/Moyens/À risque)
+
+**Tables MySQL** :
+- table_films (films scrapés)
+- table_predictions (prédictions ML) 
+- main_user (auth)
+- table_personnes + table_participations (casting)
+
+**Commandes de lancement** :
+1. docker-compose up -d
+2. cd cinapps_api && uvicorn app.main:app --reload --port 8000
+3. cd API_s && uvicorn main:app --reload --port 8001
+4. cd automatisation && scrapy crawl alloc_newfilms
+5. cd streamlit && streamlit run app.py --server.port 8501
+
+**État actuel** : Interface Streamlit finalisée avec classement des films de la semaine, API CRUD avec endpoints prédictions, documentation technique créée.
+
+**Dernière étape réalisée** : Finalisation du fichier commandes.txt avec ajout de la commande Streamlit.
+
+**Grille d'évaluation** : Je dois respecter les critères des blocs E1 à E5 (Gestion données, Veille IA, Mise à disposition IA, Développement app, Débogage/Monitoring).

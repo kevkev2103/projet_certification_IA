@@ -13,5 +13,12 @@ uvicorn main:app --reload --port 8001
 cd automatisation
 scrapy crawl alloc_newfilms
 
+#lancer l'interface Streamlit
+cd streamlit
+streamlit run app.py --server.port 8501
 
+#lancer les predictions
+se mettre à la racine projet
+lancer:
+python3 prediction_pipeline.py
 
