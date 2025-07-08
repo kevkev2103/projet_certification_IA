@@ -1,0 +1,15 @@
+Je dois réaliser un projet pour la validation de ma foramtion.
+Je dois créer une application qui permet de récupérer des films sur allocine lors de leur sortie et de prédire les entrées
+qui seront réalisées la première semaine.
+Pour cela , j'ai deja un modele qui a été entrainé et qui est fonctionnel.
+Ce modele je l'ai stocké dans une API qui est dans le dossier API_S.
+Ce que je veux, c'est lancer le scrapping, ensuite le scrapping enregistre les films scrappés dans 
+une bdd, dans la table films plus précisement.
+Ensuite, ces mêmes films sont données à l'API qui va ensuite donner des predictions et ces 
+prédictions seront ensuite stockées dans une table prédictions.
+Un existe une dossier cinapps_api qui fait le lien entre l'application et la base de données.
+Le but est d'afficher sur le streamlit, les films qui sortent et leurs prédictions.
+
+Maintenant je te laisse consulter chaque fichier du projet et je veux que tu me dises si tu as bien compris
+et me dire quelles sont les étapes à faire là tout de suite suite à l'avancement de mainteant.
+Je te donne l'ordre de parcourir tous les fichiers et de bien comprendre s'il te plait.

@@ -9,7 +9,7 @@ import time
 
 # Configuration de la page
 st.set_page_config(
-    page_title="CinéPredict - Prédiction d'entrées cinéma",
+    page_title="CinéOracle - Prédiction d'entrées cinéma",
     page_icon="🎬",
     layout="wide"
 )
@@ -231,7 +231,7 @@ def main():
     # Sidebar pour l'authentification
     with st.sidebar:
         st.image("https://img.icons8.com/color/96/000000/cinema-.png", width=100)
-        st.title("🎬 CinéPredict")
+        st.title("🎭 CinéOracle")
         
         if not st.session_state["authentication_status"]:
             st.subheader("Connexion")
@@ -258,7 +258,7 @@ def main():
 
     # Contenu principal
     if st.session_state["authentication_status"]:
-        st.title("📊 Prédiction d'entrées cinéma - Films de la semaine")
+        st.title("📊 Par les pouvoirs qui me sont conférés, je vous présente les prédictions de la première semaines!")
         
         # Informations sur la semaine
         today = datetime.now()
@@ -439,13 +439,9 @@ def main():
             st.warning("⚠️ Aucun film disponible dans la base de données")
             st.info("💡 Vérifiez que le scraping Allociné a bien fonctionné")
     else:
-        st.info("👋 Veuillez vous connecter pour accéder aux prédictions")
         st.markdown("""
-        ### 🎯 Fonctionnalités disponibles après connexion :
-        - 📊 **Classement des films** de la semaine par performance
-        - 🏆 **Catégorisation** : Top, Prometteurs, Moyens, À risque
-        - 📈 **Graphiques** d'analyse des prédictions
-        - 📋 **Tableau complet** avec toutes les informations
+        ### Bonjour et bienvenue sur notre application
+        Connectez-vous afin de découvrir les sorties de la semaine et nos prédictions!
         """)
 
 if __name__ == "__main__":
