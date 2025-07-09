@@ -80,6 +80,10 @@ if "authentication_status" not in st.session_state:
     st.session_state["authentication_status"] = False
 if "user_info" not in st.session_state:
     st.session_state["user_info"] = None
+if "registration_success" not in st.session_state:
+    st.session_state["registration_success"] = False
+if "registration_message" not in st.session_state:
+    st.session_state["registration_message"] = ""
 
 # Fonction d'authentification améliorée
 def authenticate(username: str, password: str) -> bool:
@@ -88,7 +92,10 @@ def authenticate(username: str, password: str) -> bool:
             f"{URL_API_CRUD}/auth/token",
             data={"username": username, "password": password}
         )
+        print(response.json())
+        print(response.status_code)
         if response.status_code == 200:
+    
             token_data = response.json()
             st.session_state["access_token"] = token_data.get("access_token")
             st.session_state["user_info"] = {
@@ -99,6 +106,39 @@ def authenticate(username: str, password: str) -> bool:
         return False
     except Exception as e:
         st.error(f"Erreur d'authentification: {str(e)}")
+        return False
+
+# Fonction d'inscription
+def register_user(username: str, password: str, confirm_password: str) -> bool:
+    try:
+        # Vérifier que les mots de passe correspondent
+        if password != confirm_password:
+            st.error("❌ Les mots de passe ne correspondent pas")
+            return False
+        
+        # Vérifier la longueur du mot de passe
+        if len(password) < 6:
+            st.error("❌ Le mot de passe doit contenir au moins 6 caractères")
+            return False
+        
+        # Appel à l'API d'inscription
+        response = requests.post(
+            f"{URL_API_CRUD}/auth/register",
+            json={"username": username, "password": password},
+            headers={"Content-Type": "application/json"}
+        )
+        
+        if response.status_code == 200:
+            st.session_state["registration_success"] = True
+            st.session_state["registration_message"] = f"✅ Inscription réussie pour '{username}'! Vous pouvez maintenant vous connecter."
+            return True
+        else:
+            error_data = response.json()
+            st.error(f"❌ Erreur d'inscription: {error_data.get('detail', 'Erreur inconnue')}")
+            return False
+            
+    except Exception as e:
+        st.error(f"❌ Erreur lors de l'inscription: {str(e)}")
         return False
 
 # Fonction pour obtenir le coefficient du studio
@@ -234,18 +274,51 @@ def main():
         st.title("🎭 CinéOracle")
         
         if not st.session_state["authentication_status"]:
-            st.subheader("Connexion")
-            username = st.text_input("👤 Nom d'utilisateur")
-            password = st.text_input("🔑 Mot de passe", type="password")
+            # Onglets pour Connexion et Inscription
+            tab1, tab2 = st.tabs(["🔑 Connexion", "📝 Inscription"])
             
-            if st.button("Se connecter", key="login"):
-                if authenticate(username, password):
-                    st.session_state["authentication_status"] = True
-                    st.success("✅ Connexion réussie!")
-                    time.sleep(1)
-                    st.rerun()
+            with tab1:
+                st.subheader("Connexion")
+                username = st.text_input("👤 Nom d'utilisateur", key="login_username")
+                password = st.text_input("🔑 Mot de passe", type="password", key="login_password")
+                
+                if st.button("Se connecter", key="login"):
+                    if authenticate(username, password):
+                        st.session_state["authentication_status"] = True
+                        # Réinitialiser le statut d'inscription
+                        st.session_state["registration_success"] = False
+                        st.session_state["registration_message"] = ""
+                        st.success("✅ Connexion réussie!")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("❌ Identifiants incorrects")
+            
+            with tab2:
+                st.subheader("Inscription")
+                
+                # Afficher le message de succès si l'inscription a réussi
+                if st.session_state["registration_success"]:
+                    st.success(st.session_state["registration_message"])
+                    st.info("🔄 Allez maintenant dans l'onglet 'Connexion' pour vous connecter avec vos identifiants.")
+                    
+                    # Bouton pour réinitialiser et permettre une nouvelle inscription
+                    if st.button("📝 Créer un autre compte", key="new_registration"):
+                        st.session_state["registration_success"] = False
+                        st.session_state["registration_message"] = ""
+                        st.rerun()
                 else:
-                    st.error("❌ Identifiants incorrects")
+                    # Formulaire d'inscription normal
+                    new_username = st.text_input("👤 Nouveau nom d'utilisateur", key="register_username")
+                    new_password = st.text_input("🔑 Nouveau mot de passe", type="password", key="register_password")
+                    confirm_password = st.text_input("🔐 Confirmer le mot de passe", type="password", key="confirm_password")
+                    
+                    # Afficher des informations d'aide
+                    st.info("💡 Le mot de passe doit contenir au moins 6 caractères")
+                    
+                    if st.button("S'inscrire", key="register"):
+                        if register_user(new_username, new_password, confirm_password):
+                            st.rerun()
         else:
             st.success("✅ Connecté")
             if st.session_state["user_info"]:

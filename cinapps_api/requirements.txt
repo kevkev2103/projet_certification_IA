@@ -12,3 +12,4 @@ pymysql==1.1.0
 # Pour garder pyasn1 < 0.5 (compatible python-jose)  
 pyasn1>=0.4.1,<0.5.0  
 pyasn1-modules>=0.4.1,<0.5.0  
+passlib

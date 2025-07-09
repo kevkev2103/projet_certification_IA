@@ -48,6 +48,6 @@ CREATE TABLE IF NOT EXISTS table_predictions (
 
 -- Créer un utilisateur de test (mot de passe: test123)
 INSERT INTO main_user (username, password) 
-VALUES ('testuser', 'pbkdf2_sha256$600000$salt$6JQqRHzwqgJkR+PtRbnevHFztd5GXqGVNAxVwpBvIbY=')
+VALUES ('testuser', 'pbkdf2_sha256$29000$s71byRcadMpk$YcEo+pttw3UVB/gpNS26xrc8bcX9OmzYjkPuSAviec0=')
 ON DUPLICATE KEY UPDATE username=username;
 

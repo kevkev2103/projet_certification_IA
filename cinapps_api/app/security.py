@@ -1,4 +1,4 @@
-from passlib.hash import django_pbkdf2_sha256
+
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt
@@ -36,3 +36,11 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     expire = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+# Fonction utilitaire pour générer un hash correct pour testuser
+def generate_test_user_hash():
+    """Génère un hash correct pour l'utilisateur testuser avec le mot de passe 'test123'"""
+    password = "test123"
+    hashed = get_password_hash(password)
+    print(f"Hash pour testuser avec mot de passe 'test123': {hashed}")
+    return hashed
