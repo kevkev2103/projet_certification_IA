@@ -18,3 +18,4 @@ mysql
 mysqlclient
 mysql-connector-python
 python-dotenv
+prometheus_fastapi_instrumentator

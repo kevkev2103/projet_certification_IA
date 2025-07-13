@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from .routes import films, auth
 from .database import check_db_connection, init_db
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(
     title="Cinapps API",
@@ -14,6 +15,7 @@ app = FastAPI(
         {"name": "Predictions", "description": "Gestion des prédictions d'entrées"},
     ],
 )
+Instrumentator().instrument(app).expose(app)
 
 @app.on_event("startup")
 def on_startup():

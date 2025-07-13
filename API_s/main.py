@@ -8,6 +8,7 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 import os
 
+
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -87,5 +88,7 @@ async def predict(features: PredictionRequest):
     except Exception as e:
         logger.error(f"Erreur lors de la prédiction : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
 
 # uvicorn main:app --host 0.0.0.0 --port 8001 --reload
