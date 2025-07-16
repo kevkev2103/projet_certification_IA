@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS table_films (
     image VARCHAR(255),
     budget INT,
     entrees INT,
+    anecdotes VARCHAR(255),
     film_url VARCHAR(255),
     is_pred BOOLEAN DEFAULT FALSE
 );

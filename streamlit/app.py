@@ -195,6 +195,9 @@ def fetch_films_with_predictions():
     try:
         # Récupérer les films
         response = requests.get(f"{URL_API_CRUD}/films/", headers=headers)
+        print("*"*50)
+        print(response)
+        print("*"*50)
         if response.status_code == 200:
             films_data = pd.DataFrame(response.json())
             
@@ -245,8 +248,16 @@ def get_weekly_films(films_df: pd.DataFrame) -> pd.DataFrame:
     return weekly_films
 
 # Fonction pour classer les films par performance
-def classify_film_performance(prediction: float) -> str:
+def classify_film_performance(prediction) -> str:
     """Classe un film selon sa prédiction d'entrées"""
+    # Gérer les valeurs None ou NaN
+    if prediction is None or pd.isna(prediction):
+        return "unknown"
+    
+    print("*"*50)
+    print(prediction)
+    print("*"*50)   
+    
     if prediction >= 1000000:  # Plus d'1 million d'entrées
         return "top"
     elif prediction >= 500000:  # Plus de 500k entrées
@@ -262,9 +273,31 @@ def get_performance_icon(performance: str) -> str:
         "top": "🥇",
         "good": "🥈", 
         "average": "🥉",
-        "poor": "⚠️"
+        "poor": "⚠️",
+        "unknown": "❓"
     }
     return icons.get(performance, "❓")
+
+def format_budget(budget) -> str:
+    """Formate le budget de manière sécurisée"""
+    if pd.isna(budget) or budget is None:
+        return "N/A"
+    try:
+        return f"{budget:,.0f} €"
+    except:
+        return "N/A"
+
+def format_duration(duration) -> str:
+    """Formate la durée de manière sécurisée"""
+    if pd.isna(duration) or duration is None:
+        return "N/A"
+    return f"{duration} min"
+
+def format_prediction_metric(prediction) -> str:
+    """Formate la prédiction pour les métriques"""
+    if pd.notna(prediction):
+        return f"{prediction:,.0f}"
+    return "N/A"
 
 # Interface utilisateur
 def main():
@@ -331,7 +364,7 @@ def main():
 
     # Contenu principal
     if st.session_state["authentication_status"]:
-        st.title("📊 Par les pouvoirs qui me sont conférés, je vous présente les prédictions de la première semaines!")
+        st.title("📊 Par les pouvoirs qui me sont conférés, je vous présente les prédictions de la première semaine!")
         
         # Informations sur la semaine
         today = datetime.now()
@@ -363,11 +396,16 @@ def main():
                 with col1:
                     st.metric("Nombre de films", len(weekly_films))
                 with col2:
-                    st.metric("Moyenne des prédictions", f"{weekly_films['prediction_entrees'].mean():,.0f}")
+                    # Calculer la moyenne en excluant les valeurs None
+                    valid_predictions = weekly_films['prediction_entrees'].dropna()
+                    avg_prediction = valid_predictions.mean() if not valid_predictions.empty else 0
+                    st.metric("Moyenne des prédictions", f"{avg_prediction:,.0f}")
                 with col3:
                     st.metric("Meilleur film", weekly_films.iloc[0]['titre'][:20] + "..." if len(weekly_films.iloc[0]['titre']) > 20 else weekly_films.iloc[0]['titre'])
                 with col4:
-                    st.metric("Prédiction max", f"{weekly_films['prediction_entrees'].max():,.0f}")
+                    # Calculer le max en excluant les valeurs None
+                    max_prediction = valid_predictions.max() if not valid_predictions.empty else 0
+                    st.metric("Prédiction max", f"{max_prediction:,.0f}")
                 
                 # Affichage des films par performance
                 tabs = st.tabs(["🥇 Top Films", "🥈 Films Prometteurs", "🥉 Films Moyens", "⚠️ Films à Risque"])
@@ -384,11 +422,11 @@ def main():
                                     <div class="film-card top-film">
                                         <h4>{get_performance_icon('top')} {film['titre']}</h4>
                                         <p><strong>Genre:</strong> {film['genre']} | <strong>Studio:</strong> {film['studio']}</p>
-                                        <p><strong>Durée:</strong> {film['duree']} min | <strong>Budget:</strong> {film['budget']:,.0f} €</p>
+                                        <p><strong>Durée:</strong> {format_duration(film['duree'])} | <strong>Budget:</strong> {format_budget(film['budget'])}</p>
                                     </div>
                                     """, unsafe_allow_html=True)
                                 with col2:
-                                    st.metric("Prédiction", f"{film['prediction_entrees']:,.0f}")
+                                    st.metric("Prédiction", format_prediction_metric(film['prediction_entrees']))
                                 with col3:
                                     st.write(f"📅 {film['date_sortie'].strftime('%d/%m')}")
                     else:
@@ -406,11 +444,11 @@ def main():
                                     <div class="film-card good-film">
                                         <h4>{get_performance_icon('good')} {film['titre']}</h4>
                                         <p><strong>Genre:</strong> {film['genre']} | <strong>Studio:</strong> {film['studio']}</p>
-                                        <p><strong>Durée:</strong> {film['duree']} min | <strong>Budget:</strong> {film['budget']:,.0f} €</p>
+                                        <p><strong>Durée:</strong> {format_duration(film['duree'])} | <strong>Budget:</strong> {format_budget(film['budget'])}</p>
                                     </div>
                                     """, unsafe_allow_html=True)
                                 with col2:
-                                    st.metric("Prédiction", f"{film['prediction_entrees']:,.0f}")
+                                    st.metric("Prédiction", format_prediction_metric(film['prediction_entrees']))
                                 with col3:
                                     st.write(f"📅 {film['date_sortie'].strftime('%d/%m')}")
                     else:
@@ -428,11 +466,11 @@ def main():
                                     <div class="film-card average-film">
                                         <h4>{get_performance_icon('average')} {film['titre']}</h4>
                                         <p><strong>Genre:</strong> {film['genre']} | <strong>Studio:</strong> {film['studio']}</p>
-                                        <p><strong>Durée:</strong> {film['duree']} min | <strong>Budget:</strong> {film['budget']:,.0f} €</p>
+                                        <p><strong>Durée:</strong> {format_duration(film['duree'])} | <strong>Budget:</strong> {format_budget(film['budget'])}</p>
                                     </div>
                                     """, unsafe_allow_html=True)
                                 with col2:
-                                    st.metric("Prédiction", f"{film['prediction_entrees']:,.0f}")
+                                    st.metric("Prédiction", format_prediction_metric(film['prediction_entrees']))
                                 with col3:
                                     st.write(f"📅 {film['date_sortie'].strftime('%d/%m')}")
                     else:
@@ -450,11 +488,11 @@ def main():
                                     <div class="film-card poor-film">
                                         <h4>{get_performance_icon('poor')} {film['titre']}</h4>
                                         <p><strong>Genre:</strong> {film['genre']} | <strong>Studio:</strong> {film['studio']}</p>
-                                        <p><strong>Durée:</strong> {film['duree']} min | <strong>Budget:</strong> {film['budget']:,.0f} €</p>
+                                        <p><strong>Durée:</strong> {format_duration(film['duree'])} | <strong>Budget:</strong> {format_budget(film['budget'])}</p>
                                     </div>
                                     """, unsafe_allow_html=True)
                                 with col2:
-                                    st.metric("Prédiction", f"{film['prediction_entrees']:,.0f}")
+                                    st.metric("Prédiction", format_prediction_metric(film['prediction_entrees']))
                                 with col3:
                                     st.write(f"📅 {film['date_sortie'].strftime('%d/%m')}")
                     else:
@@ -477,7 +515,8 @@ def main():
                             'top': '#FFD700',
                             'good': '#90EE90', 
                             'average': '#FFA500',
-                            'poor': '#FF6B6B'
+                            'poor': '#FF6B6B',
+                            'unknown': '#CCCCCC'
                         }
                     )
                     fig1.update_xaxes(tickangle=45)
@@ -496,12 +535,28 @@ def main():
                 
                 # Tableau complet
                 st.subheader("📋 Tableau complet des films de la semaine")
+                
+                # Préparer les données pour l'affichage
+                display_df = weekly_films[['titre', 'genre', 'studio', 'budget', 'duree', 'date_sortie', 'prediction_entrees']].copy()
+                
+                # Formater les colonnes de manière sécurisée
+                display_df['budget_formatted'] = display_df['budget'].apply(format_budget)
+                display_df['duree_formatted'] = display_df['duree'].apply(format_duration)
+                display_df['date_formatted'] = display_df['date_sortie'].apply(
+                    lambda x: x.strftime('%d/%m/%Y') if pd.notna(x) else 'N/A'
+                )
+                display_df['prediction_formatted'] = display_df['prediction_entrees'].apply(
+                    lambda x: f"{x:,.0f}" if pd.notna(x) else 'N/A'
+                )
+                
+                # Afficher le tableau avec les colonnes formatées
                 st.dataframe(
-                    weekly_films[['titre', 'genre', 'studio', 'budget', 'duree', 'date_sortie', 'prediction_entrees']]
-                    .style.format({
-                        'budget': '{:,.0f} €',
-                        'prediction_entrees': '{:,.0f}',
-                        'date_sortie': lambda x: x.strftime('%d/%m/%Y') if pd.notna(x) else ''
+                    display_df[['titre', 'genre', 'studio', 'budget_formatted', 'duree_formatted', 'date_formatted', 'prediction_formatted']]
+                    .rename(columns={
+                        'budget_formatted': 'Budget',
+                        'duree_formatted': 'Durée',
+                        'date_formatted': 'Date de sortie',
+                        'prediction_formatted': 'Prédiction entrées'
                     })
                 )
                 

@@ -10,7 +10,13 @@ router = APIRouter()
 # route pour récupérer tous les films
 @router.get("/films/", response_model=list[Film], status_code=status.HTTP_200_OK)
 def get_films(db: Session = Depends(get_db),current_user: dict = Depends(get_current_user)):
+    print("*"*50)
+    print("get_films")
+    print("*"*50)
     films = db.exec(select(Film)).all()
+    print("*"*50)
+    print(films)
+    print("*"*50)   
     if not films:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aucun film trouvé dans la BDD")
     return films

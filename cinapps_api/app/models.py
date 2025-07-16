@@ -17,7 +17,6 @@ class Film(SQLModel, table=True):
     image: Optional[str] = None
     budget: Optional[int] = None
     entrees: Optional[int] = None
-    anecdotes: Optional[str] = None
     film_url: Optional[str] = None
     is_pred: Optional[bool] = None
 
