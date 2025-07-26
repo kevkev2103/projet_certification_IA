@@ -25,6 +25,32 @@ CREATE TABLE IF NOT EXISTS table_films (
     is_pred BOOLEAN DEFAULT FALSE
 );
 
+-- NOUVELLE TABLE POUR LES FILMS FICTIFS (SOURCE FICHIER PLAT)
+CREATE TABLE IF NOT EXISTS film_fictif (
+    id_film_fictif INT AUTO_INCREMENT PRIMARY KEY,
+    titre VARCHAR(255) NOT NULL,
+    acteurs TEXT,
+    budget INT,
+    compositeur VARCHAR(255),
+    duree INT,
+    entrees_premiere_semaine INT,
+    franchise VARCHAR(255),
+    genre VARCHAR(255),
+    pays VARCHAR(255),
+    producteur VARCHAR(255),
+    realisateur VARCHAR(255),
+    remake VARCHAR(255),
+    salles_premiere_semaine INT,
+    studio VARCHAR(255),
+    scoring_acteurs DECIMAL(18,16),
+    scoring_acteurs_realisateurs DECIMAL(18,16),
+    season VARCHAR(50),
+    coeff_studio INT,
+    year INT,
+    date_import TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    source VARCHAR(50) DEFAULT 'fichier_plat'
+);
+
 CREATE TABLE IF NOT EXISTS table_personnes (
     id_personne INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(255) NOT NULL
