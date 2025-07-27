@@ -73,6 +73,14 @@ CREATE TABLE IF NOT EXISTS table_predictions (
     FOREIGN KEY (id_film) REFERENCES table_films(id_film) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS prediction_fictive (
+    id_prediction_fictive INT AUTO_INCREMENT PRIMARY KEY,
+    id_film_fictif INT NOT NULL,
+    prediction_entrees INT NOT NULL,
+    date_prediction TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_film_fictif) REFERENCES film_fictif(id_film_fictif) ON DELETE CASCADE
+);
+
 -- Créer un utilisateur de test (mot de passe: test123)
 INSERT INTO main_user (username, password) 
 VALUES ('testuser', 'pbkdf2_sha256$29000$s71byRcadMpk$YcEo+pttw3UVB/gpNS26xrc8bcX9OmzYjkPuSAviec0=')
