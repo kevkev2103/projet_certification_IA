@@ -40,6 +40,7 @@ class PredictionRequest(BaseModel):
     scoring_acteurs_realisateurs: float
     coeff_studio: int
     year: int
+    is_fictif: bool = False  # Nouveau paramètre pour films fictifs
 
 @app.get("/")
 async def root():
@@ -55,34 +56,46 @@ async def predict(features: PredictionRequest):
         prediction = model_pipeline.predict(df)
         prediction_value = int(prediction[0])
         
-        # Stocker la prédiction dans la base de données
+        # Stocker la prédiction selon le type de film
         with engine.connect() as conn:
-            # Insérer la prédiction
-            insert_prediction = text("""
-                INSERT INTO table_predictions (id_film, prediction_entrees)
-                VALUES (:id_film, :prediction)
-            """)
-            conn.execute(insert_prediction, {
-                "id_film": features.id_film,
-                "prediction": prediction_value
-            })
-            
-            # Mettre à jour le statut is_pred dans table_films
-            update_film = text("""
-                UPDATE table_films 
-                SET is_pred = TRUE 
-                WHERE id_film = :id_film
-            """)
-            conn.execute(update_film, {"id_film": features.id_film})
+            if features.is_fictif:
+                # Pour les films fictifs : stockage dans prediction_fictive
+                insert_prediction = text("""
+                    INSERT INTO prediction_fictive (id_film_fictif, prediction_entrees)
+                    VALUES (:id_film, :prediction)
+                """)
+                conn.execute(insert_prediction, {
+                    "id_film": features.id_film,
+                    "prediction": prediction_value
+                })
+                logger.info(f"Prédiction fictive stockée pour film ID {features.id_film}")
+            else:
+                # Pour les films réels : stockage dans table_predictions
+                insert_prediction = text("""
+                    INSERT INTO table_predictions (id_film, prediction_entrees)
+                    VALUES (:id_film, :prediction)
+                """)
+                conn.execute(insert_prediction, {
+                    "id_film": features.id_film,
+                    "prediction": prediction_value
+                })
+                
+                # Mettre à jour le statut is_pred dans table_films
+                update_film = text("""
+                    UPDATE table_films 
+                    SET is_pred = TRUE 
+                    WHERE id_film = :id_film
+                """)
+                conn.execute(update_film, {"id_film": features.id_film})
+                logger.info(f"Prédiction réelle stockée pour film ID {features.id_film}")
             
             conn.commit()
-        
-        logger.info(f"Prédiction stockée pour le film ID {features.id_film}")
         
         return {
             "prediction": prediction_value,
             "id_film": features.id_film,
-            "message": "Prédiction stockée avec succès"
+            "is_fictif": features.is_fictif,
+            "message": f"Prédiction {'fictive' if features.is_fictif else 'réelle'} stockée avec succès"
         }
     
     except Exception as e:
