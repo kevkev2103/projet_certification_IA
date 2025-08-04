@@ -6,7 +6,7 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-
+import os
 BOT_NAME = "imdb"
 
 SPIDER_MODULES = ["imdb.spiders"]
@@ -67,10 +67,17 @@ ITEM_PIPELINES = {
     "imdb.pipelines.NewFilmsPipeline": 300,
     'imdb.pipelines.MySQLStorePipeline': 800,
 }
-MYSQL_USER = 'kevin'
-MYSQL_PASSWORD = 'kevinpass'
-MYSQL_HOST = 'localhost'  # On utilise localhost car le script tourne en dehors de Docker
-MYSQL_DATABASE = 'cinapps'    # Nom de la base défini dans .env
+# MYSQL_USER = 'kevin'
+# MYSQL_PASSWORD = 'kevinpass'
+# MYSQL_HOST = 'localhost'  # On utilise localhost car le script tourne en dehors de Docker
+# MYSQL_DATABASE = 'cinapps'
+
+
+MYSQL_HOST = os.getenv('MYSQL_HOST', 'mysql')
+MYSQL_USER = os.getenv('MYSQL_USER', 'kevin') 
+MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', 'kevinpass')
+MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'cinapps')
+    # Nom de la base défini dans .env
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
 #AUTOTHROTTLE_ENABLED = True

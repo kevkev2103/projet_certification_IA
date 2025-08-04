@@ -1,18 +1,173 @@
-version: '3.8'
-
 services:
+  # ===== BASE DE DONNÉES =====
   mysql:
-    image: mysql:8.0  # ✅ on revient à une version stable
-    container_name: mysql-bdd-projet
+    image: mysql:8.0
+    container_name: cinapps-mysql
     restart: always
-    env_file:
-      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d
+    networks:
+      - cinapps-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # ===== API CRUD (FastAPI) =====
+  cinapps-api:
+    build: 
+      context: ./cinapps_api
+      dockerfile: Dockerfile
+    container_name: cinapps-api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?charset=utf8mb4
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: ${ALGORITHM}
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - cinapps-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"] 
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 
+  # ===== INTERFACE STREAMLIT =====
+  streamlit-app:
+    build: 
+      context: ./streamlit
+      dockerfile: Dockerfile
+    container_name: streamlit-app
+    restart: always
+    ports:
+      - "8501:8501"
+    environment:
+      URL_API_CRUD: ${API_URL_CRUD}
+      URL_API_PRED: ${API_URL_PREDICTION}
+    env_file:
+      - .env
+    volumes:
+      - ./streamlit/acteurs_coef.csv:/app/acteurs_coef.csv:ro
+    depends_on:
+      - cinapps-api
+    networks:
+      - cinapps-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ===== SERVICE DE SCRAPING =====
+  scraper-service:
+    build: 
+      context: ./automatisation
+      dockerfile: Dockerfile
+    container_name: scraper-service
+    restart: "no"  # Manuel ou programmé
+    environment:
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    env_file:
+      - .env
+    command: ["scrapy", "crawl", "alloc_newfilms"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - cinapps-network
+    profiles:
+      - scraping  # Service optionnel
+
+  # ===== PIPELINE DE PRÉDICTION =====
+  prediction-pipeline:
+    build: 
+      context: .
+      dockerfile: Dockerfile.pipeline
+    container_name: prediction-pipeline
+    restart: "no"  # Manuel ou programmé
+    environment:
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      API_URL_PREDICTION: ${API_URL_PREDICTION}
+      API_URL_CRUD: ${API_URL_CRUD}
+    depends_on:
+      - cinapps-api
+    networks:
+      - cinapps-network
+    profiles:
+      - pipeline  # Service optionnel
+
+  # ===== MONITORING - PROMETHEUS =====
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - cinapps-network
+
+  # ===== MONITORING - GRAFANA =====
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - cinapps-network
+
+# ===== RÉSEAUX =====
+networks:
+  cinapps-network:
+    driver: bridge
+    name: cinapps-network
+
+# ===== VOLUMES =====
 volumes:
   mysql_data:
+    name: cinapps-mysql-data
+  prometheus_data:
+    name: cinapps-prometheus-data
+  grafana_data:
+    name: cinapps-grafana-data

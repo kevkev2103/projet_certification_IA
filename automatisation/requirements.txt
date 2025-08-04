@@ -3,3 +3,5 @@ Scrapy==2.11.1
 scrapy-fake-useragent
 psycopg2-binary
 mysql-connector-python
+pymysql
+python-dotenv

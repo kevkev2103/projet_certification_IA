@@ -1,5 +1,25 @@
-# demarrer le docker
-docker-compose up -d
+# ===== DOCKER (NOUVEAU - RECOMMANDÉ) =====
+# Démarrer tout l'écosystème avec Docker
+./docker-start.sh
+
+# OU manuellement :
+docker-compose up --build -d
+
+# Voir les logs
+./docker-logs.sh
+
+# Arrêter et nettoyer
+./docker-clean.sh
+
+# Lancer le scraping avec Docker
+docker-compose --profile scraping up scraper-service
+
+# Lancer le pipeline de prédiction avec Docker
+docker-compose --profile pipeline up prediction-pipeline
+
+# ===== MÉTHODE CLASSIQUE (Ancienne) =====
+# demarrer la base de données
+docker-compose up -d mysql
 
 # demarrer l'api crud
 cd cinapps_api
@@ -20,12 +40,12 @@ python3 prediction_pipeline.py
 
 #lancer l'interface Streamlit
 cd streamlit
-streamlit run app.py --server.port 8501
+streamlit run app.py --server.port 8501 
 
 # lancer prometheus
 cd monitoring
 docker-compose up
-http://localhostGrafana::9090
+http://localhost:9090
 Clique sur “Status” > “Targets” pour voir l'état "up"
 verification possible des logs sur http://localhost:8000/metrics
 
@@ -42,4 +62,9 @@ ensuite aller dans dashboards (a gauche)
 puis cliquer sur new -> new dashboards
 puis cliquer sur add visualisation
 prendre prometheus comme source
+
+*************************************************************
+
+# permet de lancer d'un coup les conteneurs
+./docker-start.sh 
 

@@ -60,7 +60,7 @@ st.markdown("""
 # Chargement des variables d'environnement
 load_dotenv()
 URL_API_CRUD = os.getenv('URL_API_CRUD', 'http://localhost:8000')
-URL_API_PRED = os.getenv('URL_API_PRED', 'http://localhost:8001')
+URL_API_PRED = os.getenv('URL_API_PRED', 'http://localhost:8000')
 
 # Chargement des données des acteurs
 @st.cache_data
@@ -196,7 +196,7 @@ def fetch_films_with_predictions():
         # Récupérer les films
         response = requests.get(f"{URL_API_CRUD}/films/", headers=headers)
         print("*"*50)
-        print(response)
+        print(response.json())
         print("*"*50)
         if response.status_code == 200:
             films_data = pd.DataFrame(response.json())
@@ -227,22 +227,22 @@ def fetch_films_with_predictions():
 
 # Fonction pour filtrer les films de la semaine
 def get_weekly_films(films_df: pd.DataFrame) -> pd.DataFrame:
-    """Filtre les films sortis cette semaine"""
+    """Filtre les films sortis dans les 7 derniers jours"""
     if films_df.empty:
         return films_df
     
     # Convertir la colonne date_sortie en datetime
     films_df['date_sortie'] = pd.to_datetime(films_df['date_sortie'], errors='coerce')
     
-    # Calculer la date de début de semaine (lundi)
+    # Calculer la plage des 7 derniers jours
     today = datetime.now()
-    start_of_week = today - timedelta(days=today.weekday())
-    end_of_week = start_of_week + timedelta(days=6)
+    start_date = today - timedelta(days=7)
+    end_date = today + timedelta(days=3)  # Inclure quelques jours futurs
     
-    # Filtrer les films de cette semaine
+    # Filtrer les films des 7 derniers jours + 3 jours futurs
     weekly_films = films_df[
-        (films_df['date_sortie'] >= start_of_week) & 
-        (films_df['date_sortie'] <= end_of_week)
+        (films_df['date_sortie'] >= start_date) & 
+        (films_df['date_sortie'] <= end_date)
     ].copy()
     
     return weekly_films
@@ -364,14 +364,14 @@ def main():
 
     # Contenu principal
     if st.session_state["authentication_status"]:
-        st.title("📊 Par les pouvoirs qui me sont conférés, je vous présente les prédictions de la première semaine!")
+        st.title("📊 Par les pouvoirs qui me sont conférés, je vous présente les prédictions des sorties récentes!")
         
-        # Informations sur la semaine
+        # Informations sur la période
         today = datetime.now()
-        start_of_week = today - timedelta(days=today.weekday())
-        end_of_week = start_of_week + timedelta(days=6)
+        start_date = today - timedelta(days=7)
+        end_date = today + timedelta(days=3)
         
-        st.info(f"📅 **Semaine du {start_of_week.strftime('%d/%m/%Y')} au {end_of_week.strftime('%d/%m/%Y')}**")
+        st.info(f"📅 **Films sortis du {start_date.strftime('%d/%m/%Y')} au {end_date.strftime('%d/%m/%Y')}**")
         
         # Chargement des films
         with st.spinner("Chargement des données..."):
@@ -389,7 +389,7 @@ def main():
                 weekly_films['performance'] = weekly_films['prediction_entrees'].apply(classify_film_performance)
                 
                 # Affichage du classement
-                st.subheader("🏆 Classement des films de la semaine")
+                st.subheader("🏆 Classement des sorties récentes")
                 
                 # Métriques globales
                 col1, col2, col3, col4 = st.columns(4)
@@ -430,7 +430,7 @@ def main():
                                 with col3:
                                     st.write(f"📅 {film['date_sortie'].strftime('%d/%m')}")
                     else:
-                        st.info("Aucun film dans cette catégorie cette semaine")
+                        st.info("Aucun film dans cette catégorie pour cette période")
                 
                 # Films prometteurs (500k-1M entrées)
                 with tabs[1]:
@@ -452,7 +452,7 @@ def main():
                                 with col3:
                                     st.write(f"📅 {film['date_sortie'].strftime('%d/%m')}")
                     else:
-                        st.info("Aucun film dans cette catégorie cette semaine")
+                        st.info("Aucun film dans cette catégorie pour cette période")
                 
                 # Films moyens (100k-500k entrées)
                 with tabs[2]:
@@ -474,7 +474,7 @@ def main():
                                 with col3:
                                     st.write(f"📅 {film['date_sortie'].strftime('%d/%m')}")
                     else:
-                        st.info("Aucun film dans cette catégorie cette semaine")
+                        st.info("Aucun film dans cette catégorie pour cette période")
                 
                 # Films à risque (moins de 100k entrées)
                 with tabs[3]:
@@ -496,7 +496,7 @@ def main():
                                 with col3:
                                     st.write(f"📅 {film['date_sortie'].strftime('%d/%m')}")
                     else:
-                        st.info("Aucun film dans cette catégorie cette semaine")
+                        st.info("Aucun film dans cette catégorie pour cette période")
                 
                 # Graphiques
                 st.subheader("📈 Analyses visuelles")
@@ -534,7 +534,7 @@ def main():
                     st.plotly_chart(fig2, use_container_width=True)
                 
                 # Tableau complet
-                st.subheader("📋 Tableau complet des films de la semaine")
+                st.subheader("📋 Tableau complet des sorties récentes")
                 
                 # Préparer les données pour l'affichage
                 display_df = weekly_films[['titre', 'genre', 'studio', 'budget', 'duree', 'date_sortie', 'prediction_entrees']].copy()
@@ -561,7 +561,7 @@ def main():
                 )
                 
             else:
-                st.warning("⚠️ Aucun film sorti cette semaine dans la base de données")
+                st.warning("⚠️ Aucun film trouvé pour cette période dans la base de données")
                 st.info("💡 Les films sont ajoutés automatiquement via le scraping Allociné")
         else:
             st.warning("⚠️ Aucun film disponible dans la base de données")

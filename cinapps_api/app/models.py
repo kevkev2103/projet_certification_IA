@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from sqlmodel import SQLModel, Field
 from datetime import date, datetime
 from typing import Optional
@@ -47,3 +48,16 @@ class Prediction(SQLModel, table=True):
     id_film: int = Field(foreign_key="table_films.id_film")
     prediction_entrees: int
     date_prediction: Optional[datetime] = Field(default_factory=datetime.now)
+
+
+class PredictionRequest(BaseModel):
+    id_film: int
+    budget: float
+    duree: int
+    genre: str
+    pays: str
+    salles_premiere_semaine: int
+    scoring_acteurs_realisateurs: float
+    coeff_studio: int
+    year: int
+    is_fictif: bool = False 

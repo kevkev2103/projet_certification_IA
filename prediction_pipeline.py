@@ -22,17 +22,18 @@ DB_CONFIG = {
     'database': os.getenv('MYSQL_DATABASE')
 }
 
-# Configuration de l'API
-API_URL = "http://localhost:8001/prediction/"
+# Configuration de l'API (APIs fusionnées)
+API_URL_CRUD = os.getenv("API_URL_CRUD", "http://localhost:8000")
+API_URL_PREDICTION = API_URL_CRUD + "/prediction/"
 API_TOKEN = os.getenv("API_TOKEN")  # Token depuis les variables d'environnement
 
 def authenticate_and_get_token():
     """S'authentifie automatiquement et récupère le token"""
     try:
-        auth_url = "http://localhost:8000/auth/token"
+        auth_url = f"{API_URL_CRUD}/auth/token"
         auth_data = {
-            "username": "testuser",
-            "password": "test123"
+            "username": "chouchou",
+            "password": "chouchou123"
         }
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         
@@ -116,7 +117,7 @@ def get_prediction(data: Dict) -> float:
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
         }
-        response = requests.post(API_URL, json=data, headers=headers)
+        response = requests.post(API_URL_PREDICTION, json=data, headers=headers)
         response.raise_for_status()
         result = response.json()
         logger.info(f"Réponse de l'API: {result}")
