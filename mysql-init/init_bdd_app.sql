@@ -81,8 +81,14 @@ CREATE TABLE IF NOT EXISTS prediction_fictive (
     FOREIGN KEY (id_film_fictif) REFERENCES film_fictif(id_film_fictif) ON DELETE CASCADE
 );
 
--- Créer un utilisateur de test (mot de passe: test123)
+-- Créer des utilisateurs de test
+-- testuser / test123
 INSERT INTO main_user (username, password) 
 VALUES ('testuser', 'pbkdf2_sha256$29000$s71byRcadMpk$YcEo+pttw3UVB/gpNS26xrc8bcX9OmzYjkPuSAviec0=')
+ON DUPLICATE KEY UPDATE username=username;
+
+-- chouchou / chouchou123 (pour le pipeline de prédiction)
+INSERT INTO main_user (username, password) 
+VALUES ('chouchou', 'pbkdf2_sha256$29000$3Uy3ouUFcFNJ$v9HwhfYv4zjkUSYEIHyTlM3KC7BuMf7xkzKwGtHbDq0=')
 ON DUPLICATE KEY UPDATE username=username;
 
