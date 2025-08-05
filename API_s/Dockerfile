@@ -1,8 +1,11 @@
 FROM python:3.10-slim
 
-# Installer curl pour les health checks
+# Installer les dépendances système nécessaires
 RUN apt-get update && apt-get install -y \
     curl \
+    pkg-config \
+    default-libmysqlclient-dev \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

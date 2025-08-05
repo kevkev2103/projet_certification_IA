@@ -1,0 +1,176 @@
+name: Security - Analyse de Sécurité
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Scan de sécurité hebdomadaire le dimanche à 2h du matin
+    - cron: '0 2 * * 0'
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.10.12
+
+    - name: Install safety
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety
+
+    - name: Check dependencies for known vulnerabilities
+      run: |
+        # Vérifier les dépendances principales
+        safety check -r requirements.txt --json --output safety-report.json || true
+        safety check -r cinapps_api/requirements.txt --json --output safety-api-report.json || true
+        safety check -r streamlit/requirements.txt --json --output safety-streamlit-report.json || true
+        safety check -r tests/requirements.txt --json --output safety-tests-report.json || true
+
+    - name: Upload safety reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: safety-reports
+        path: safety-*-report.json
+
+  docker-security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build Docker images for security scanning
+      run: |
+        docker build -t cinapps-api:security-scan cinapps_api/
+        docker build -t streamlit-app:security-scan streamlit/
+        docker build -t prediction-pipeline:security-scan -f Dockerfile.pipeline .
+
+    - name: Run Trivy vulnerability scanner on API image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'cinapps-api:security-scan'
+        format: 'sarif'
+        output: 'trivy-api-results.sarif'
+
+    - name: Run Trivy vulnerability scanner on Streamlit image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'streamlit-app:security-scan'
+        format: 'sarif'
+        output: 'trivy-streamlit-results.sarif'
+
+    - name: Run Trivy vulnerability scanner on Pipeline image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'prediction-pipeline:security-scan'
+        format: 'sarif'
+        output: 'trivy-pipeline-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-api-results.sarif'
+
+    - name: Upload security scan artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-scan-results
+        path: trivy-*-results.sarif
+
+  secrets-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run GitLeaks secret scanner
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-bench:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Dockerfile security best practices check
+      run: |
+        # Vérifier quelques bonnes pratiques de sécurité dans les Dockerfiles
+        echo "🔍 Vérification des bonnes pratiques Docker..."
+        
+        # Vérifier qu'on n'utilise pas root
+        if grep -r "USER root" */Dockerfile* ; then
+          echo "⚠️ Utilisation de l'utilisateur root détectée"
+        fi
+        
+        # Vérifier la présence de HEALTHCHECK
+        for dockerfile in */Dockerfile Dockerfile.pipeline; do
+          if [ -f "$dockerfile" ]; then
+            if ! grep -q "HEALTHCHECK" "$dockerfile"; then
+              echo "⚠️ Pas de HEALTHCHECK dans $dockerfile"
+            else
+              echo "✅ HEALTHCHECK présent dans $dockerfile"
+            fi
+          fi
+        done
+        
+        # Vérifier qu'on nettoie les caches apt
+        for dockerfile in */Dockerfile Dockerfile.pipeline; do
+          if [ -f "$dockerfile" ]; then
+            if grep -q "apt-get update" "$dockerfile" && ! grep -q "rm -rf /var/lib/apt/lists" "$dockerfile"; then
+              echo "⚠️ Cache apt non nettoyé dans $dockerfile"
+            fi
+          fi
+        done
+
+  owasp-zap:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: motdepasseadmin
+          MYSQL_DATABASE: cinapps
+          MYSQL_USER: kevin
+          MYSQL_PASSWORD: kevinpass
+        ports:
+          - 3306:3306
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.10.12
+
+    - name: Install and start API
+      run: |
+        pip install -r cinapps_api/requirements.txt
+        cd cinapps_api
+        python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        sleep 15
+
+    - name: ZAP Baseline Scan
+      uses: zaproxy/action-baseline@v0.10.0
+      with:
+        target: 'http://localhost:8000'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a'

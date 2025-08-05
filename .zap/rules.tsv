@@ -1,0 +1,24 @@
+# ZAP Baseline Rules for CinApps API Security Scan
+# Format: FAIL-NEW, FAIL-INPROG, IGNORE, INFO, or WARN followed by tab and the rule ID
+
+# Authentication endpoints are expected to be accessible
+IGNORE	10202	# Absence of Anti-CSRF Tokens (expected for API)
+
+# Development/staging specific ignores
+INFO	10021	# X-Content-Type-Options Header Missing
+INFO	10020	# X-Frame-Options Header Missing
+
+# API specific rules
+WARN	10016	# Web Browser XSS Protection Not Enabled
+WARN	10017	# Cross-Domain JavaScript Source File Inclusion
+
+# Security headers
+FAIL-NEW	10035	# Strict-Transport-Security Header Missing
+FAIL-NEW	10038	# Content Security Policy (CSP) Header Missing
+
+# High severity issues should fail
+FAIL-NEW	40018	# SQL Injection
+FAIL-NEW	40019	# SQL Injection - MySQL
+FAIL-NEW	40020	# SQL Injection - Hypersonic SQL
+FAIL-NEW	40021	# SQL Injection - Oracle
+FAIL-NEW	40022	# SQL Injection - PostgreSQL
