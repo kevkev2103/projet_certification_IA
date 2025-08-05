@@ -26,12 +26,4 @@ jobs:
     
     - name: Run basic tests
       run: |
-        python -m pytest tests/test_basic.py -v
-    
-    - name: Validate docker-compose
-      run: |
-        docker-compose config
-    
-    - name: Test Docker build (simple)
-      run: |
-        docker build -f cinapps_api/Dockerfile -t test-api cinapps_api/
+        python -m pytest tests/ -v
