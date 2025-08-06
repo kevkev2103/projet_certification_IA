@@ -39,23 +39,30 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r tests/requirements-test.txt
     
-    # 5. Lancer les tests
+    # 5. Variables d'environnement pour SQLite
+    - name: Setup variables de test
+      run: |
+        echo "DATABASE_URL=sqlite:///test_cinapps.db" >> $GITHUB_ENV
+        echo "GITHUB_ACTIONS=true" >> $GITHUB_ENV
+    
+    # 6. Lancer les tests
     - name: Lancer les tests
       run: |
-        echo "🧪 Lancement des tests..."
+        echo "🧪 Lancement des tests avec SQLite..."
         pytest --version
         pytest -v --tb=short
       continue-on-error: true  
     
-    # 6. Tests avec coverage (bonus)
+    # 7. Tests avec coverage (bonus)
     - name: Tests avec coverage
       run: |
         echo "📊 Tests avec coverage..."
-        pytest --cov=cinapps_api --cov-report=term-missing
+        pytest --cov=tests --cov-report=term-missing
       continue-on-error: true
     
-    # 7. Afficher le résultat
+    # 8. Afficher le résultat
     - name: Résultat
       run: |
         echo "✅ Workflow CI terminé !"
-        echo "📋 Les tests ont été exécutés"
+        echo "📋 Les tests ont été exécutés avec SQLite"
+        echo "🗃️ Base de test: SQLite temporaire"
