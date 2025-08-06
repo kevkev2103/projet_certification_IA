@@ -47,45 +47,59 @@ jobs:
         echo "SECRET_KEY=test_secret_key_for_ci" >> $GITHUB_ENV
         echo "ALGORITHM=HS256" >> $GITHUB_ENV
     
-    # 6. Installer dépendances API
+    # 6. Installer dépendances API (vraies dépendances)
     - name: Installer dépendances API
       run: |
         echo "📦 Installation dépendances API..."
-        pip install fastapi uvicorn sqlmodel pymysql python-multipart python-jose[cryptography] passlib[bcrypt]
+        pip install -r cinapps_api/requirements.txt
     
-    # 7. Lancer l'API en arrière-plan
+    # 7. Créer fichier .env pour l'API
+    - name: Créer configuration .env
+      run: |
+        echo "📝 Création du fichier .env pour l'API..."
+        cd cinapps_api
+        echo "DATABASE_URL=sqlite:///../test_cinapps.db" > .env
+        echo "SECRET_KEY=test_secret_key_for_ci" >> .env
+        echo "ALGORITHM=HS256" >> .env
+        echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+    
+    # 8. Lancer l'API en arrière-plan
     - name: Lancer l'API en arrière-plan
       run: |
         echo "🚀 Lancement de l'API en arrière-plan..."
         cd cinapps_api
-        nohup python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        nohup python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 > api.log 2>&1 &
         echo "⏳ Attente démarrage API..."
-        sleep 15
-        echo "✅ API démarrée"
+        sleep 20
+        echo "📋 Logs de l'API:"
+        cat api.log || echo "Pas de logs trouvés"
+        echo "✅ Tentative de démarrage terminée"
     
-    # 8. Vérifier que l'API répond
+    # 9. Vérifier que l'API répond
     - name: Test API démarrée
       run: |
         echo "🔍 Vérification API..."
-        curl -f http://localhost:8000/docs || echo "API pas encore prête"
+        curl -f http://localhost:8000/ || echo "API pas encore prête"
+        echo "🔍 Test endpoint health..."
+        curl -f http://localhost:8000/health || echo "Health check failed"
         sleep 5
     
-    # 9. Lancer les tests
+    # 10. Lancer les tests
     - name: Lancer les tests
       run: |
         echo "🧪 Lancement des tests avec SQLite..."
         pytest --version
         pytest -v --tb=short
-      continue-on-error: true  
+      # continue-on-error: true  
     
-    # 10. Tests avec coverage (bonus)
+    # 11. Tests avec coverage (bonus)
     - name: Tests avec coverage
       run: |
         echo "📊 Tests avec coverage..."
         pytest --cov=tests --cov-report=term-missing
       continue-on-error: true
     
-    # 11. Afficher le résultat
+    # 12. Afficher le résultat
     - name: Résultat
       run: |
         echo "✅ Workflow CI terminé !"
