@@ -12,14 +12,19 @@ def setup_test_database():
     if os.getenv('GITHUB_ACTIONS'):
         print("🔧 Configuration SQLite pour CI...")
         
-        # Créer la base SQLite en mémoire
+        # Supprimer l'ancienne base si elle existe
         db_path = "test_cinapps.db"
+        if os.path.exists(db_path):
+            os.remove(db_path)
+            print("🗑️  Ancienne base SQLite supprimée")
+        
+        # Créer la nouvelle base SQLite
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         
         # Créer les tables nécessaires (structure minimale)
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS main_user (
+            CREATE TABLE main_user (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username VARCHAR(50) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL
@@ -27,7 +32,7 @@ def setup_test_database():
         """)
         
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS Films (
+            CREATE TABLE Films (
                 id_film INTEGER PRIMARY KEY AUTOINCREMENT,
                 titre VARCHAR(255) NOT NULL,
                 annee_sortie INTEGER,
@@ -37,7 +42,7 @@ def setup_test_database():
         """)
         
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS table_predictions (
+            CREATE TABLE table_predictions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 id_film INTEGER,
                 prediction_entrees INTEGER
@@ -50,12 +55,14 @@ def setup_test_database():
         hashed = bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt())
         
         cursor.execute("""
-            INSERT OR REPLACE INTO main_user (username, password) 
+            INSERT INTO main_user (username, password) 
             VALUES (?, ?)
         """, ("testuser", hashed.decode('utf-8')))
         
         conn.commit()
         conn.close()
+        
+        print("✅ Base SQLite créée avec utilisateur testuser")
         
         # Retourner l'URL de la base SQLite
         return f"sqlite:///{db_path}"
