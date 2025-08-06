@@ -45,7 +45,7 @@ jobs:
         echo "🧪 Lancement des tests..."
         pytest --version
         pytest -v --tb=short
-      continue-on-error: true  # Ne pas faire échouer si tests échouent
+      continue-on-error: true  
     
     # 6. Tests avec coverage (bonus)
     - name: Tests avec coverage
