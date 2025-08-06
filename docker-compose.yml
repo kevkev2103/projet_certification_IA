@@ -116,7 +116,8 @@ services:
       API_URL_PREDICTION: ${API_URL_PREDICTION}
       API_URL_CRUD: ${API_URL_CRUD}
     depends_on:
-      - cinapps-api
+      cinapps-api:
+        condition: service_healthy
     networks:
       - cinapps-network
     profiles:

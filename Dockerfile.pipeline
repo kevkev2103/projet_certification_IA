@@ -3,6 +3,7 @@ FROM python:3.10-slim
 # Installer les dépendances système nécessaires
 RUN apt-get update && apt-get install -y \
     curl \
+    netcat-traditional \
     pkg-config \
     default-libmysqlclient-dev \
     build-essential \
@@ -21,9 +22,7 @@ COPY clean_predictions_fictives.py .
 # Copier les données nécessaires
 COPY fictif/ ./fictif/
 
-# Script d'attente pour les services
-COPY wait-for-services.sh .
-RUN chmod +x wait-for-services.sh
+# Plus besoin de script d'attente - Docker s'en charge !
 
 # Commande par défaut
 CMD ["python", "prediction_pipeline.py"]
