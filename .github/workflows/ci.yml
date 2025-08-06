@@ -75,14 +75,20 @@ jobs:
         cat api.log || echo "Pas de logs trouvés"
         echo "✅ Tentative de démarrage terminée"
     
-    # 9. Vérifier que l'API répond
-    - name: Test API démarrée
-      run: |
-        echo "🔍 Vérification API..."
-        curl -f http://localhost:8000/ || echo "API pas encore prête"
-        echo "🔍 Test endpoint health..."
-        curl -f http://localhost:8000/health || echo "Health check failed"
-        sleep 5
+                # 9. Vérifier que l'API répond
+            - name: Test API démarrée
+              run: |
+                echo "🔍 Vérification API..."
+                curl -f http://localhost:8000/ || echo "API pas encore prête"
+                echo "🔍 Test endpoint health..."
+                curl -f http://localhost:8000/health || echo "Health check failed"
+                sleep 5
+            
+            # 9.1. Insérer l'utilisateur de test APRÈS démarrage API
+            - name: Insérer utilisateur test
+              run: |
+                echo "🔧 Insertion utilisateur test APRÈS démarrage API..."
+                python -c "from tests.database_test import insert_test_user; insert_test_user()"
     
     # 9.5. Debug complet avant tests
     - name: Debug configuration

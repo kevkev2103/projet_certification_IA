@@ -21,18 +21,21 @@ def setup_test_database():
             os.remove(db_path)
             print("🗑️  Ancienne base SQLite supprimée")
         
-        # Créer la base SQLite avec la table main_user PRÊTE
+        print("✅ Base SQLite prête pour l'API")
+        return f"sqlite:///{db_path}"
+    
+    else:
+        print("🔧 Utilisation MySQL local...")
+        return None
+
+def insert_test_user():
+    """Insérer l'utilisateur de test APRÈS que l'API démarre"""
+    if os.getenv('GITHUB_ACTIONS'):
+        print("🔧 Insertion utilisateur test APRÈS démarrage API...")
+        
+        db_path = "test_cinapps.db"
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        
-        # Créer la table main_user AVANT que l'API démarre
-        cursor.execute("""
-            CREATE TABLE main_user (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username VARCHAR(50) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL
-            )
-        """)
         
         # Créer l'utilisateur de test avec la MÊME méthode de hachage que l'API
         test_password = "test123"
@@ -46,15 +49,8 @@ def setup_test_database():
         conn.commit()
         conn.close()
         
-        print("✅ Base SQLite créée avec table main_user et utilisateur testuser")
+        print("✅ Utilisateur testuser inséré dans la base")
         print(f"🔐 Hash utilisé: {hashed[:50]}...")
-        
-        # Retourner l'URL de la base SQLite
-        return f"sqlite:///{db_path}"
-    
-    else:
-        print("🔧 Utilisation MySQL local...")
-        return None
 
 def get_test_database_url():
     """Retourner l'URL de base appropriée pour les tests"""
