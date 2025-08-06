@@ -193,3 +193,29 @@
 ---
 
 *Source : Grille évaluation_commentaires - Grille (1).pdf* :contentReference[oaicite:2]{index=2}
+
+## **📋 Étape 1 : Créer le fichier des dépendances de test**
+
+**Fichier à créer :** `requirements-test.txt` dans le dossier `tests/`
+
+**Contenu proposé :**
+```txt
+# Dépendances pour les tests
+pytest==7.4.0
+pytest-asyncio==0.21.1
+httpx==0.24.1
+pytest-cov==4.1.0
+requests==2.31.0
+```
+
+**📝 Explication :**
+- `pytest` : Framework de test principal
+- `pytest-asyncio` : Pour tester les fonctions async
+- `httpx` : Client HTTP moderne pour FastAPI
+- `pytest-cov` : Pour mesurer la couverture de code
+- `requests` : Pour les appels HTTP simples
+
+**❓ Validation :**
+**Voulez-vous que je crée ce fichier `requirements-test.txt` avec ce contenu ?**
+
+**Répondez OUI/NON ou proposez des modifications** ✅
