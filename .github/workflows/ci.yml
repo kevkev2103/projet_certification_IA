@@ -126,15 +126,7 @@ jobs:
         sqlite3 test_cinapps.db "SELECT id, username, substr(hashed_password, 1, 50) as hash_start FROM main_user;" || echo "Erreur lecture utilisateurs"
         
         echo "🔍 Debug API - Test de connexion directe:"
-        python -c "
-import sqlite3
-conn = sqlite3.connect('test_cinapps.db')
-cursor = conn.cursor()
-cursor.execute('SELECT username FROM main_user WHERE username = ?', ('testuser',))
-user = cursor.fetchone()
-print(f'Utilisateur trouvé: {user}')
-conn.close()
-"
+        python -c "import sqlite3; conn = sqlite3.connect('test_cinapps.db'); cursor = conn.cursor(); cursor.execute('SELECT username FROM main_user WHERE username = ?', ('testuser',)); user = cursor.fetchone(); print(f'Utilisateur trouvé: {user}'); conn.close()"
     
     # 10. Lancer les tests
     - name: Lancer les tests
