@@ -18,58 +18,16 @@ def setup_test_database():
             os.remove(db_path)
             print("🗑️  Ancienne base SQLite supprimée")
         
-        # Créer la nouvelle base SQLite
+        # Créer une base SQLite vide - on laisse l'API créer ses tables
         conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        
-        # Créer les tables nécessaires (structure minimale)
-        cursor.execute("""
-            CREATE TABLE main_user (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username VARCHAR(50) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL
-            )
-        """)
-        
-        cursor.execute("""
-            CREATE TABLE Films (
-                id_film INTEGER PRIMARY KEY AUTOINCREMENT,
-                titre VARCHAR(255) NOT NULL,
-                annee_sortie INTEGER,
-                genre VARCHAR(100),
-                duree INTEGER
-            )
-        """)
-        
-        cursor.execute("""
-            CREATE TABLE table_predictions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                id_film INTEGER,
-                prediction_entrees INTEGER
-            )
-        """)
-        
-        # Créer l'utilisateur de test avec mot de passe hashé
-        test_password = "test123"
-        # Hash simple pour les tests (même logique que votre app)
-        hashed = bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt())
-        
-        cursor.execute("""
-            INSERT INTO main_user (username, password) 
-            VALUES (?, ?)
-        """, ("testuser", hashed.decode('utf-8')))
-        
-        conn.commit()
         conn.close()
-        
-        print("✅ Base SQLite créée avec utilisateur testuser")
+        print("📝 Base SQLite vide créée - l'API va créer les tables")
         
         # Retourner l'URL de la base SQLite
         return f"sqlite:///{db_path}"
     
     else:
         print("🔧 Utilisation MySQL local...")
-        # Utiliser MySQL local (config normale)
         return None
 
 def get_test_database_url():
@@ -82,3 +40,35 @@ def get_test_database_url():
     # Sinon, utiliser MySQL local
     mysql_url = os.getenv("DATABASE_URL", "mysql+pymysql://db_user:user_mdp@127.0.0.1:3306/db_name")
     return mysql_url
+
+def insert_test_user():
+    """Insérer l'utilisateur de test APRÈS que l'API ait créé les tables"""
+    if os.getenv('GITHUB_ACTIONS'):
+        print("👤 Insertion utilisateur testuser...")
+        
+        conn = sqlite3.connect("test_cinapps.db")
+        cursor = conn.cursor()
+        
+        # Vérifier quelle structure la table a
+        cursor.execute("PRAGMA table_info(main_user)")
+        columns = cursor.fetchall()
+        print(f"📋 Structure détectée: {columns}")
+        
+        # Adapter selon la structure trouvée
+        password_column = "password"
+        for col in columns:
+            if "password" in col[1].lower():
+                password_column = col[1]
+                break
+        
+        test_password = "test123"
+        hashed = bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt())
+        
+        cursor.execute(f"""
+            INSERT OR REPLACE INTO main_user (username, {password_column}) 
+            VALUES (?, ?)
+        """, ("testuser", hashed.decode('utf-8')))
+        
+        conn.commit()
+        conn.close()
+        print(f"✅ Utilisateur testuser inséré avec colonne {password_column}")
