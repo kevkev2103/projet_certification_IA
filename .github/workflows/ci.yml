@@ -84,13 +84,6 @@ jobs:
         curl -f http://localhost:8000/health || echo "Health check failed"
         sleep 5
     
-    # 9.2. Insérer utilisateur test après création tables par API
-    - name: Insérer utilisateur de test
-      run: |
-        echo "👤 Insertion utilisateur de test..."
-        cd tests
-        python -c "from database_test import insert_test_user; insert_test_user()"
-    
     # 9.5. Debug complet avant tests
     - name: Debug configuration
       run: |

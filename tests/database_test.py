@@ -18,10 +18,32 @@ def setup_test_database():
             os.remove(db_path)
             print("🗑️  Ancienne base SQLite supprimée")
         
-        # Créer une base SQLite vide - on laisse l'API créer ses tables
+        # Créer la base SQLite avec la table main_user PRÊTE
         conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Créer la table main_user AVANT que l'API démarre
+        cursor.execute("""
+            CREATE TABLE main_user (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                hashed_password VARCHAR(255) NOT NULL
+            )
+        """)
+        
+        # Créer l'utilisateur de test immédiatement
+        test_password = "test123"
+        hashed = bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt())
+        
+        cursor.execute("""
+            INSERT INTO main_user (username, hashed_password) 
+            VALUES (?, ?)
+        """, ("testuser", hashed.decode('utf-8')))
+        
+        conn.commit()
         conn.close()
-        print("📝 Base SQLite vide créée - l'API va créer les tables")
+        
+        print("✅ Base SQLite créée avec table main_user et utilisateur testuser")
         
         # Retourner l'URL de la base SQLite
         return f"sqlite:///{db_path}"
@@ -40,63 +62,3 @@ def get_test_database_url():
     # Sinon, utiliser MySQL local
     mysql_url = os.getenv("DATABASE_URL", "mysql+pymysql://db_user:user_mdp@127.0.0.1:3306/db_name")
     return mysql_url
-
-def insert_test_user():
-    """Insérer l'utilisateur de test APRÈS que l'API ait créé les tables"""
-    if os.getenv('GITHUB_ACTIONS'):
-        print("👤 Insertion utilisateur testuser...")
-        
-        # Attendre que l'API crée les tables
-        import time
-        max_attempts = 10
-        for attempt in range(max_attempts):
-            try:
-                conn = sqlite3.connect("test_cinapps.db")
-                cursor = conn.cursor()
-                
-                # Vérifier si la table existe
-                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='main_user'")
-                if cursor.fetchone():
-                    print(f"✅ Table main_user trouvée à l'essai {attempt + 1}")
-                    break
-                else:
-                    print(f"⏳ Table main_user pas encore créée, essai {attempt + 1}/{max_attempts}")
-                    conn.close()
-                    time.sleep(3)  # Attendre 3 secondes
-            except Exception as e:
-                print(f"⚠️ Erreur vérification table: {e}")
-                time.sleep(3)
-        
-        # Maintenant insérer l'utilisateur
-        try:
-            conn = sqlite3.connect("test_cinapps.db")
-            cursor = conn.cursor()
-            
-            # Vérifier quelle structure la table a
-            cursor.execute("PRAGMA table_info(main_user)")
-            columns = cursor.fetchall()
-            print(f"📋 Structure détectée: {columns}")
-            
-            # Adapter selon la structure trouvée
-            password_column = "password"
-            for col in columns:
-                if "password" in col[1].lower():
-                    password_column = col[1]
-                    break
-            
-            test_password = "test123"
-            hashed = bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt())
-            
-            cursor.execute(f"""
-                INSERT OR REPLACE INTO main_user (username, {password_column}) 
-                VALUES (?, ?)
-            """, ("testuser", hashed.decode('utf-8')))
-            
-            conn.commit()
-            conn.close()
-            print(f"✅ Utilisateur testuser inséré avec colonne {password_column}")
-            
-        except Exception as e:
-            print(f"❌ Erreur insertion utilisateur: {e}")
-            if 'conn' in locals():
-                conn.close()
