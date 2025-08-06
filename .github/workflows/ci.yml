@@ -44,8 +44,33 @@ jobs:
       run: |
         echo "DATABASE_URL=sqlite:///test_cinapps.db" >> $GITHUB_ENV
         echo "GITHUB_ACTIONS=true" >> $GITHUB_ENV
+        echo "SECRET_KEY=test_secret_key_for_ci" >> $GITHUB_ENV
+        echo "ALGORITHM=HS256" >> $GITHUB_ENV
     
-    # 6. Lancer les tests
+    # 6. Installer dépendances API
+    - name: Installer dépendances API
+      run: |
+        echo "📦 Installation dépendances API..."
+        pip install fastapi uvicorn sqlmodel pymysql python-multipart python-jose[cryptography] passlib[bcrypt]
+    
+    # 7. Lancer l'API en arrière-plan
+    - name: Lancer l'API en arrière-plan
+      run: |
+        echo "🚀 Lancement de l'API en arrière-plan..."
+        cd cinapps_api
+        nohup python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        echo "⏳ Attente démarrage API..."
+        sleep 15
+        echo "✅ API démarrée"
+    
+    # 8. Vérifier que l'API répond
+    - name: Test API démarrée
+      run: |
+        echo "🔍 Vérification API..."
+        curl -f http://localhost:8000/docs || echo "API pas encore prête"
+        sleep 5
+    
+    # 9. Lancer les tests
     - name: Lancer les tests
       run: |
         echo "🧪 Lancement des tests avec SQLite..."
@@ -53,14 +78,14 @@ jobs:
         pytest -v --tb=short
       continue-on-error: true  
     
-    # 7. Tests avec coverage (bonus)
+    # 10. Tests avec coverage (bonus)
     - name: Tests avec coverage
       run: |
         echo "📊 Tests avec coverage..."
         pytest --cov=tests --cov-report=term-missing
       continue-on-error: true
     
-    # 8. Afficher le résultat
+    # 11. Afficher le résultat
     - name: Résultat
       run: |
         echo "✅ Workflow CI terminé !"
