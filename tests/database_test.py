@@ -1,3 +1,4 @@
+# tests/database_test.py
 # Configuration base de données pour les tests
 import os
 import sqlite3
@@ -21,7 +22,7 @@ def setup_test_database():
             CREATE TABLE IF NOT EXISTS main_user (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username VARCHAR(50) UNIQUE NOT NULL,
-                hashed_password VARCHAR(255) NOT NULL
+                password VARCHAR(255) NOT NULL
             )
         """)
         
@@ -49,7 +50,7 @@ def setup_test_database():
         hashed = bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt())
         
         cursor.execute("""
-            INSERT OR REPLACE INTO main_user (username, hashed_password) 
+            INSERT OR REPLACE INTO main_user (username, password) 
             VALUES (?, ?)
         """, ("testuser", hashed.decode('utf-8')))
         
