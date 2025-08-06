@@ -46,29 +46,57 @@ def insert_test_user():
     if os.getenv('GITHUB_ACTIONS'):
         print("👤 Insertion utilisateur testuser...")
         
-        conn = sqlite3.connect("test_cinapps.db")
-        cursor = conn.cursor()
+        # Attendre que l'API crée les tables
+        import time
+        max_attempts = 10
+        for attempt in range(max_attempts):
+            try:
+                conn = sqlite3.connect("test_cinapps.db")
+                cursor = conn.cursor()
+                
+                # Vérifier si la table existe
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='main_user'")
+                if cursor.fetchone():
+                    print(f"✅ Table main_user trouvée à l'essai {attempt + 1}")
+                    break
+                else:
+                    print(f"⏳ Table main_user pas encore créée, essai {attempt + 1}/{max_attempts}")
+                    conn.close()
+                    time.sleep(3)  # Attendre 3 secondes
+            except Exception as e:
+                print(f"⚠️ Erreur vérification table: {e}")
+                time.sleep(3)
         
-        # Vérifier quelle structure la table a
-        cursor.execute("PRAGMA table_info(main_user)")
-        columns = cursor.fetchall()
-        print(f"📋 Structure détectée: {columns}")
-        
-        # Adapter selon la structure trouvée
-        password_column = "password"
-        for col in columns:
-            if "password" in col[1].lower():
-                password_column = col[1]
-                break
-        
-        test_password = "test123"
-        hashed = bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt())
-        
-        cursor.execute(f"""
-            INSERT OR REPLACE INTO main_user (username, {password_column}) 
-            VALUES (?, ?)
-        """, ("testuser", hashed.decode('utf-8')))
-        
-        conn.commit()
-        conn.close()
-        print(f"✅ Utilisateur testuser inséré avec colonne {password_column}")
+        # Maintenant insérer l'utilisateur
+        try:
+            conn = sqlite3.connect("test_cinapps.db")
+            cursor = conn.cursor()
+            
+            # Vérifier quelle structure la table a
+            cursor.execute("PRAGMA table_info(main_user)")
+            columns = cursor.fetchall()
+            print(f"📋 Structure détectée: {columns}")
+            
+            # Adapter selon la structure trouvée
+            password_column = "password"
+            for col in columns:
+                if "password" in col[1].lower():
+                    password_column = col[1]
+                    break
+            
+            test_password = "test123"
+            hashed = bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt())
+            
+            cursor.execute(f"""
+                INSERT OR REPLACE INTO main_user (username, {password_column}) 
+                VALUES (?, ?)
+            """, ("testuser", hashed.decode('utf-8')))
+            
+            conn.commit()
+            conn.close()
+            print(f"✅ Utilisateur testuser inséré avec colonne {password_column}")
+            
+        except Exception as e:
+            print(f"❌ Erreur insertion utilisateur: {e}")
+            if 'conn' in locals():
+                conn.close()
