@@ -84,6 +84,35 @@ jobs:
         curl -f http://localhost:8000/health || echo "Health check failed"
         sleep 5
     
+    # 9.5. Debug complet avant tests
+    - name: Debug configuration
+      run: |
+        echo "🔍 === DEBUG CONFIGURATION ==="
+        echo "📂 Répertoire actuel:"
+        pwd
+        ls -la
+        
+        echo "📋 Variables d'environnement:"
+        env | grep -E "(DATABASE|GITHUB|SECRET)" || echo "Aucune variable trouvée"
+        
+        echo "📁 Fichier .env de l'API:"
+        cat cinapps_api/.env || echo "Fichier .env introuvable"
+        
+        echo "🗃️ Base SQLite:"
+        ls -la test_cinapps.db || echo "Base SQLite introuvable"
+        
+        echo "👤 Utilisateurs dans la base:"
+        sqlite3 test_cinapps.db "SELECT username FROM main_user;" || echo "Erreur lecture base"
+        
+        echo "📋 Logs API:"
+        cd cinapps_api
+        tail -20 api.log || echo "Pas de logs API"
+        
+        echo "🌐 Test auth manuel:"
+        curl -X POST "http://localhost:8000/auth/token" \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          -d "username=testuser&password=test123" || echo "Test auth échoué"
+    
     # 10. Lancer les tests
     - name: Lancer les tests
       run: |
