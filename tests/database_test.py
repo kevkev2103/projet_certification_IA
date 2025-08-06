@@ -30,7 +30,7 @@ def setup_test_database():
             CREATE TABLE main_user (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username VARCHAR(50) UNIQUE NOT NULL,
-                hashed_password VARCHAR(255) NOT NULL
+                password VARCHAR(255) NOT NULL
             )
         """)
         
@@ -39,7 +39,7 @@ def setup_test_database():
         hashed = pwd_context.hash(test_password)  # Utilise django_pbkdf2_sha256 comme l'API
         
         cursor.execute("""
-            INSERT INTO main_user (username, hashed_password) 
+            INSERT INTO main_user (username, password) 
             VALUES (?, ?)
         """, ("testuser", hashed))
         
