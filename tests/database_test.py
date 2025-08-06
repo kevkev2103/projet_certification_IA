@@ -3,7 +3,10 @@
 import os
 import sqlite3
 from sqlalchemy import create_engine, text
-import bcrypt
+from passlib.context import CryptContext
+
+# 🔐 Configuration pour pbkdf2_sha256 (compatible Django) - MÊME QUE L'API
+pwd_context = CryptContext(schemes=["django_pbkdf2_sha256"], deprecated="auto")
 
 def setup_test_database():
     """Setup base SQLite pour les tests CI"""
@@ -31,19 +34,20 @@ def setup_test_database():
             )
         """)
         
-        # Créer l'utilisateur de test immédiatement
+        # Créer l'utilisateur de test avec la MÊME méthode de hachage que l'API
         test_password = "test123"
-        hashed = bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt())
+        hashed = pwd_context.hash(test_password)  # Utilise django_pbkdf2_sha256 comme l'API
         
         cursor.execute("""
             INSERT INTO main_user (username, hashed_password) 
             VALUES (?, ?)
-        """, ("testuser", hashed.decode('utf-8')))
+        """, ("testuser", hashed))
         
         conn.commit()
         conn.close()
         
         print("✅ Base SQLite créée avec table main_user et utilisateur testuser")
+        print(f"🔐 Hash utilisé: {hashed[:50]}...")
         
         # Retourner l'URL de la base SQLite
         return f"sqlite:///{db_path}"
