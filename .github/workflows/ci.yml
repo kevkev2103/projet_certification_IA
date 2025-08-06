@@ -75,21 +75,21 @@ jobs:
         cat api.log || echo "Pas de logs trouvés"
         echo "✅ Tentative de démarrage terminée"
     
-                # 9. Vérifier que l'API répond
-            - name: Test API démarrée
-              run: |
-                echo "🔍 Vérification API..."
-                curl -f http://localhost:8000/ || echo "API pas encore prête"
-                echo "🔍 Test endpoint health..."
-                curl -f http://localhost:8000/health || echo "Health check failed"
-                sleep 5
-            
-            # 9.1. Créer l'utilisateur de test via l'API
-            - name: Créer utilisateur test via API
-              run: |
-                echo "🔧 Création utilisateur test via endpoint API..."
-                curl -X POST "http://localhost:8000/test/setup-user" || echo "Erreur création utilisateur"
-                echo "✅ Tentative de création utilisateur terminée"
+    # 9. Vérifier que l'API répond
+    - name: Test API démarrée
+      run: |
+        echo "🔍 Vérification API..."
+        curl -f http://localhost:8000/ || echo "API pas encore prête"
+        echo "🔍 Test endpoint health..."
+        curl -f http://localhost:8000/health || echo "Health check failed"
+        sleep 5
+    
+    # 9.1. Créer l'utilisateur de test via l'API
+    - name: Créer utilisateur test via API
+      run: |
+        echo "🔧 Création utilisateur test via endpoint API..."
+        curl -X POST "http://localhost:8000/test/setup-user" || echo "Erreur création utilisateur"
+        echo "✅ Tentative de création utilisateur terminée"
     
     # 9.5. Debug complet avant tests
     - name: Debug configuration
@@ -129,14 +129,14 @@ jobs:
         echo "🔍 Debug API - Tables utilisées:"
         sqlite3 test_cinapps.db "SELECT name FROM sqlite_master WHERE type='table';" || echo "Erreur liste tables"
         
-                        echo "🔍 Debug API - Utilisateurs dans main_user:"
-                sqlite3 test_cinapps.db "SELECT id, username, substr(password, 1, 50) as hash_start FROM main_user;" || echo "Erreur lecture utilisateurs"
+        echo "🔍 Debug API - Utilisateurs dans main_user:"
+        sqlite3 test_cinapps.db "SELECT id, username, substr(password, 1, 50) as hash_start FROM main_user;" || echo "Erreur lecture utilisateurs"
         
         echo "🔍 Debug API - Structure réelle de main_user:"
         sqlite3 test_cinapps.db "PRAGMA table_info(main_user);" || echo "Erreur structure table"
         
-                        echo "🔍 Debug API - Test de connexion directe:"
-                python -c "import sqlite3; conn = sqlite3.connect('test_cinapps.db'); cursor = conn.cursor(); cursor.execute('SELECT username, substr(password, 1, 30) FROM main_user WHERE username = ?', ('testuser',)); user = cursor.fetchone(); print(f'Utilisateur trouvé: {user}'); conn.close()"
+        echo "🔍 Debug API - Test de connexion directe:"
+        python -c "import sqlite3; conn = sqlite3.connect('test_cinapps.db'); cursor = conn.cursor(); cursor.execute('SELECT username, substr(password, 1, 30) FROM main_user WHERE username = ?', ('testuser',)); user = cursor.fetchone(); print(f'Utilisateur trouvé: {user}'); conn.close()"
     
     # 10. Lancer les tests
     - name: Lancer les tests
