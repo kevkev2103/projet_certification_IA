@@ -28,29 +28,7 @@ def setup_test_database():
         print("🔧 Utilisation MySQL local...")
         return None
 
-def insert_test_user():
-    """Insérer l'utilisateur de test APRÈS que l'API démarre"""
-    if os.getenv('GITHUB_ACTIONS'):
-        print("🔧 Insertion utilisateur test APRÈS démarrage API...")
-        
-        db_path = "test_cinapps.db"
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        
-        # Créer l'utilisateur de test avec la MÊME méthode de hachage que l'API
-        test_password = "test123"
-        hashed = pwd_context.hash(test_password)  # Utilise django_pbkdf2_sha256 comme l'API
-        
-        cursor.execute("""
-            INSERT INTO main_user (username, password) 
-            VALUES (?, ?)
-        """, ("testuser", hashed))
-        
-        conn.commit()
-        conn.close()
-        
-        print("✅ Utilisateur testuser inséré dans la base")
-        print(f"🔐 Hash utilisé: {hashed[:50]}...")
+
 
 def get_test_database_url():
     """Retourner l'URL de base appropriée pour les tests"""

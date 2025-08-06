@@ -1,9 +1,12 @@
 # app/main.py
 
 import logging
+import os
 from fastapi import FastAPI
 from .routes import films, auth, pred
 from .database import check_db_connection, init_db
+from .services import UserService
+from .security import get_password_hash
 from prometheus_fastapi_instrumentator import Instrumentator
 
 
@@ -44,6 +47,36 @@ async def read_root():
 async def health_check():
     """Endpoint de health check pour Docker"""
     return {"status": "healthy", "service": "cinapps-api"}
+
+@app.post("/test/setup-user", tags=["Test"])
+async def setup_test_user():
+    """Endpoint pour créer l'utilisateur de test en CI"""
+    if os.getenv('GITHUB_ACTIONS'):
+        try:
+            from .database import get_db
+            db = next(get_db())
+            
+            # Créer l'utilisateur testuser avec mot de passe test123
+            test_password = "test123"
+            hashed_password = get_password_hash(test_password)
+            
+            # Vérifier si l'utilisateur existe déjà
+            existing_user = UserService.get_user_by_username(db, "testuser")
+            if existing_user:
+                return {"message": "Utilisateur testuser existe déjà", "status": "success"}
+            
+            # Créer le nouvel utilisateur
+            from .models import User
+            new_user = User(username="testuser", password=hashed_password)
+            db.add(new_user)
+            db.commit()
+            
+            return {"message": "Utilisateur testuser créé avec succès", "status": "success"}
+            
+        except Exception as e:
+            return {"message": f"Erreur création utilisateur: {str(e)}", "status": "error"}
+    else:
+        return {"message": "Endpoint réservé aux tests CI", "status": "skipped"}
 
 
 

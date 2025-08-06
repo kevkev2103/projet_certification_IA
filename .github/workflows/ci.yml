@@ -84,11 +84,12 @@ jobs:
                 curl -f http://localhost:8000/health || echo "Health check failed"
                 sleep 5
             
-            # 9.1. Insérer l'utilisateur de test APRÈS démarrage API
-            - name: Insérer utilisateur test
+            # 9.1. Créer l'utilisateur de test via l'API
+            - name: Créer utilisateur test via API
               run: |
-                echo "🔧 Insertion utilisateur test APRÈS démarrage API..."
-                python -c "from tests.database_test import insert_test_user; insert_test_user()"
+                echo "🔧 Création utilisateur test via endpoint API..."
+                curl -X POST "http://localhost:8000/test/setup-user" || echo "Erreur création utilisateur"
+                echo "✅ Tentative de création utilisateur terminée"
     
     # 9.5. Debug complet avant tests
     - name: Debug configuration
