@@ -75,7 +75,7 @@ jobs:
         cat api.log || echo "Pas de logs trouvés"
         echo "✅ Tentative de démarrage terminée"
     
-       # 9. Vérifier que l'API répond
+    # 9. Vérifier que l'API répond
     - name: Test API démarrée
       run: |
         echo "🔍 Vérification API..."
@@ -94,8 +94,6 @@ sys.path.append('tests')
 from database_test import insert_test_user
 insert_test_user()
 "
-    
-  
     
     # 9.5. Debug complet avant tests
     - name: Debug configuration
