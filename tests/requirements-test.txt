@@ -1,0 +1,9 @@
+# Dépendances pour les tests
+pytest==7.4.0
+pytest-asyncio==0.21.1
+httpx==0.24.1
+pytest-cov==4.1.0
+requests==2.31.0
+bcrypt==4.0.1
+sqlalchemy==2.0.21
+passlib==1.7.4
