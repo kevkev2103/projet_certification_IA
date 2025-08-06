@@ -58,7 +58,7 @@ jobs:
       run: |
         echo "📝 Création du fichier .env pour l'API..."
         cd cinapps_api
-        echo "DATABASE_URL=sqlite:///../test_cinapps.db" > .env
+        echo "DATABASE_URL=sqlite:///test_cinapps.db" > .env
         echo "SECRET_KEY=test_secret_key_for_ci" >> .env
         echo "ALGORITHM=HS256" >> .env
         echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
@@ -103,6 +103,12 @@ jobs:
         
         echo "👤 Utilisateurs dans la base:"
         sqlite3 test_cinapps.db "SELECT username FROM main_user;" || echo "Erreur lecture base"
+        
+        echo "📋 Tables dans la base:"
+        sqlite3 test_cinapps.db ".tables" || echo "Erreur liste tables"
+        
+        echo "📋 Structure table main_user:"
+        sqlite3 test_cinapps.db ".schema main_user" || echo "Table main_user introuvable"
         
         echo "📋 Logs API:"
         cd cinapps_api
