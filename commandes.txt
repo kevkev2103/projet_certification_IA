@@ -47,6 +47,7 @@ cd monitoring
 docker-compose up
 http://localhost:9090
 Clique sur “Status” > “Targets” pour voir l'état "up"
+Puis cliquer sur graph et tapper predictions_total et on voit 18
 verification possible des logs sur http://localhost:8000/metrics
 
 #lancer grafana
