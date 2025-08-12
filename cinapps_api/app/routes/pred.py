@@ -6,11 +6,18 @@ import logging
 from .auth import get_current_user
 from ..utils.model_utils import load_model
 import pandas as pd
+from prometheus_client import Counter, Histogram, Gauge
+import time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Métriques Prometheus pour les prédictions
+predictions_counter = Counter('predictions_total', 'Total number of predictions made')
+prediction_duration = Histogram('prediction_duration_seconds', 'Time spent making predictions')
+predictions_per_minute = Gauge('predictions_per_minute', 'Predictions per minute')
 
 try:
     model_pipeline, preprocessor = load_model()  # modèle ML préchargé
@@ -21,6 +28,8 @@ except Exception as e:
 
 @router.post("/prediction/")
 async def predict(features: PredictionRequest, current_user: dict = Depends(get_current_user)): 
+    start_time = time.time()
+    
     try:
         # Créer un DataFrame avec les features
         df = pd.DataFrame([features.dict()])
@@ -64,6 +73,10 @@ async def predict(features: PredictionRequest, current_user: dict = Depends(get_
             
             conn.commit()
         
+        # Incrémenter les métriques Prometheus
+        predictions_counter.inc()
+        predictions_per_minute.inc()
+        
         return {
             "prediction": prediction_value,
             "id_film": features.id_film,
@@ -74,3 +87,7 @@ async def predict(features: PredictionRequest, current_user: dict = Depends(get_
     except Exception as e:
         logger.error(f"Erreur lors de la prédiction : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # Mesurer la durée de la prédiction
+        duration = time.time() - start_time
+        prediction_duration.observe(duration)
