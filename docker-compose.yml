@@ -64,7 +64,7 @@ services:
     environment:
       URL_API_CRUD: ${API_URL_CRUD}
       URL_API_PRED: ${API_URL_PREDICTION}
-      ACTEURS_COEF_PATH: /tmp/acteurs_coef.csv
+      ACTEURS_COEF_PATH: /app/acteurs_coef.csv
     env_file:
       - .env
     volumes:
