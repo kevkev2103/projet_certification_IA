@@ -3,6 +3,7 @@ import re
 from scrapy.exceptions import DropItem
 from datetime import datetime
 import logging
+import time
 from parsel import Selector  # Scrapy utilise Parsel pour le parsing HTML
 
 class NewFilmsPipeline:
@@ -200,6 +201,8 @@ class MySQLStorePipeline:
         logging.debug(f"Executing insert_film with params={params}")
         self.cursor.execute(query, params)
         self.conn.commit()
+        logging.info(f"✅ Film inséré en base. Délai de 1 seconde...")
+        time.sleep(1)  # Délai de 1 seconde après l'insertion du film
         return self.cursor.lastrowid
 
     def ensure_person_exists(self, person_name):
@@ -209,6 +212,8 @@ class MySQLStorePipeline:
             return result[0]
         self.cursor.execute("INSERT INTO table_personnes (nom) VALUES (%s)", (person_name,))
         self.conn.commit()
+        logging.info(f"✅ Personne '{person_name}' insérée en base. Délai de 1 seconde...")
+        time.sleep(1)  # Délai de 1 seconde après l'insertion d'une personne
         return self.cursor.lastrowid
 
     def link_person_to_film(self, film_id, person_id, role):
@@ -221,3 +226,4 @@ class MySQLStorePipeline:
         self.conn.commit()
         logging.info(f"✅ Enregistrement de {person_id} ({role}) pour le film {film_id}")
         logging.info(f"✅ Film {film_id} enregistré en base.")
+        time.sleep(1)  # Délai de 1 seconde après l'insertion d'une participation
