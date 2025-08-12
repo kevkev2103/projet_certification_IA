@@ -30,7 +30,7 @@ services:
     container_name: cinapps-api
     restart: always
     ports:
-      - "8002:8000"
+      - "8002:8002"
     environment:
       MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT}
@@ -47,7 +47,7 @@ services:
     networks:
       - cinapps-network
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8002/health"]
       interval: 30s
       timeout: 10s
       retries: 5
