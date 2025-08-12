@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from sqlmodel import SQLModel, Field
 from datetime import date, datetime
 from typing import Optional
+from sqlmodel import SQLModel, Field, Column, Text
+from typing import Optional
 
 class Film(SQLModel, table=True):
     __tablename__ = "table_films"
@@ -14,7 +16,7 @@ class Film(SQLModel, table=True):
     date_sortie: Optional[date] = None  #  Change `str` en `date`
     pays: Optional[str] = None
     studio: Optional[str] = None
-    description: Optional[str] = None
+    description: Optional[str] = Field(default=None, sa_column=Column(Text))
     image: Optional[str] = None
     budget: Optional[int] = None
     entrees: Optional[int] = None
