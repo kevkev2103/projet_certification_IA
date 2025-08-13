@@ -151,16 +151,17 @@ class MySQLStorePipeline:
 
     def clean_database(self):
         try:
-            # Supprimer d'abord les tables dépendantes (ordre important)
-            self.cursor.execute("DELETE FROM table_predictions;")
-            self.cursor.execute("DELETE FROM table_participations;")
-            self.cursor.execute("DELETE FROM table_films;")
-            self.cursor.execute("DELETE FROM table_personnes;")
+            # Désactiver temporairement les contraintes de clé étrangère
+            self.cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
             
-            # Réinitialiser les auto-increment
-            self.cursor.execute("ALTER TABLE table_films AUTO_INCREMENT = 1;")
-            self.cursor.execute("ALTER TABLE table_participations AUTO_INCREMENT = 1;")
-            self.cursor.execute("ALTER TABLE table_predictions AUTO_INCREMENT = 1;")
+            # Vider toutes les tables dans l'ordre
+            self.cursor.execute("TRUNCATE TABLE table_predictions;")
+            self.cursor.execute("TRUNCATE TABLE table_participations;")
+            self.cursor.execute("TRUNCATE TABLE table_films;")
+            self.cursor.execute("TRUNCATE TABLE table_personnes;")
+            
+            # Réactiver les contraintes
+            self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
             
             self.conn.commit()
             print("✅ Base de données nettoyée avant le crawl.")
