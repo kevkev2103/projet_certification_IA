@@ -151,11 +151,11 @@ class MySQLStorePipeline:
 
     def clean_database(self):
         try:
-            print("🧹 Début du nettoyage de la base de données...")
+            logging.info("🧹 Début du nettoyage de la base de données...")
             
             # Désactiver complètement les contraintes de clé étrangère
             self.cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
-            print("✅ Contraintes de clé étrangère désactivées")
+            logging.info("✅ Contraintes de clé étrangère désactivées")
             
             # ORDRE CRUCIAL : nettoyer d'abord les tables enfant, puis les parents
             # L'ordre doit respecter les dépendances de clés étrangères
@@ -172,34 +172,34 @@ class MySQLStorePipeline:
                     self.cursor.execute(f"DELETE FROM {table};")
                     # Réinitialiser l'auto-increment si nécessaire
                     self.cursor.execute(f"ALTER TABLE {table} AUTO_INCREMENT = 1;")
-                    print(f"✅ Table {table} vidée et auto-increment réinitialisé")
+                    logging.info(f"✅ Table {table} vidée et auto-increment réinitialisé")
                 except MySQLError as e:
-                    print(f"❌ Erreur lors du vidage de {table}: {e}")
+                    logging.info(f"❌ Erreur lors du vidage de {table}: {e}")
                     # En cas d'erreur, on continue avec les autres tables
                     continue
             
             # Commit toutes les opérations
             self.conn.commit()
-            print("✅ Toutes les opérations de nettoyage commitées")
+            logging.info("✅ Toutes les opérations de nettoyage commitées")
             
             # Réactiver les contraintes de clé étrangère
             self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-            print("✅ Contraintes de clé étrangère réactivées")
+            logging.info("✅ Contraintes de clé étrangère réactivées")
             
-            print("🎉 Base de données nettoyée avec succès avant le crawl.")
+            logging.info("🎉 Base de données nettoyée avec succès avant le crawl.")
             
         except MySQLError as e:
-            print(f"❌ Erreur critique lors du nettoyage de la BDD: {e}")
+            logging.info(f"❌ Erreur critique lors du nettoyage de la BDD: {e}")
             # Toujours essayer de réactiver les contraintes en cas d'erreur
             try:
                 self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-                print("✅ Contraintes de clé étrangère réactivées après erreur")
+                logging.info("✅ Contraintes de clé étrangère réactivées après erreur")
             except MySQLError as e2:
-                print(f"⚠️ Impossible de réactiver les contraintes: {e2}")
+                logging.info(f"⚠️ Impossible de réactiver les contraintes: {e2}")
             
             # Rollback en cas d'erreur
             self.conn.rollback()
-            print("🔄 Rollback effectué")
+            logging.info("🔄 Rollback effectué")
             
             # Re-lever l'erreur pour que l'application sache qu'il y a eu un problème
             raise e
