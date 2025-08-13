@@ -151,22 +151,47 @@ class MySQLStorePipeline:
 
     def clean_database(self):
         try:
-            # Désactiver temporairement les contraintes de clé étrangère
-            self.cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+            print(" Début du nettoyage de la base de données...")
             
-            # Vider toutes les tables dans l'ordre
-            self.cursor.execute("TRUNCATE TABLE table_predictions;")
-            self.cursor.execute("TRUNCATE TABLE table_participations;")
-            self.cursor.execute("TRUNCATE TABLE table_films;")
-            self.cursor.execute("TRUNCATE TABLE table_personnes;")
+            # Désactiver complètement les contraintes de clé étrangère
+            self.cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+            print("✅ Contraintes de clé étrangère désactivées")
+            
+            # Vider toutes les tables avec TRUNCATE (plus rapide et efficace)
+            tables_to_clean = [
+                'table_predictions',
+                'table_participations', 
+                'table_films',
+                'table_personnes'
+            ]
+            
+            for table in tables_to_clean:
+                try:
+                    self.cursor.execute(f"TRUNCATE TABLE {table};")
+                    print(f"✅ Table {table} vidée")
+                except MySQLError as e:
+                    print(f"⚠️ Erreur lors du vidage de {table}: {e}")
+                    # Fallback: utiliser DELETE si TRUNCATE échoue
+                    try:
+                        self.cursor.execute(f"DELETE FROM {table};")
+                        print(f"✅ Table {table} vidée avec DELETE")
+                    except MySQLError as e2:
+                        print(f"❌ Impossible de vider {table}: {e2}")
             
             # Réactiver les contraintes
             self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+            print("✅ Contraintes de clé étrangère réactivées")
             
             self.conn.commit()
-            print("✅ Base de données nettoyée avant le crawl.")
+            print("✅ Base de données nettoyée avec succès avant le crawl.")
+            
         except MySQLError as e:
             print(f"❌ Erreur lors du nettoyage de la BDD: {e}")
+            # Essayer de réactiver les contraintes en cas d'erreur
+            try:
+                self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+            except:
+                pass
             self.conn.rollback()
 
     def process_item(self, item, spider):
