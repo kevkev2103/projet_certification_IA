@@ -38,13 +38,13 @@ if [ -f "clean_db_manual.py" ]; then
         exit 1
     fi
 else
-    print_warning "Script Python non trouvé, utilisation de MySQL direct..."
-    # Option 2: Utiliser MySQL directement
-    mysql -u kevin -pkevinpass cinapps < clean_database.sql
+    print_warning "Script Python non trouvé, utilisation de MySQL Docker..."
+    # Option 2: Utiliser MySQL Docker
+    docker exec cinapps-mysql mysql -u kevin -pkevinpass cinapps < clean_database.sql
     if [ $? -eq 0 ]; then
-        print_status "✅ Nettoyage MySQL réussi"
+        print_status "✅ Nettoyage MySQL Docker réussi"
     else
-        print_error "❌ Erreur lors du nettoyage MySQL"
+        print_error "❌ Erreur lors du nettoyage MySQL Docker"
         exit 1
     fi
 fi
