@@ -19,16 +19,18 @@ load_dotenv()
 def clean_database():
     """Nettoie manuellement la base de données"""
     
-    # Configuration de la base de données
+    # Configuration de la base de données pour Docker
     db_config = {
         'user': os.getenv('MYSQL_USER', 'kevin'),
         'password': os.getenv('MYSQL_PASSWORD', 'kevinpass'),
-        'host': os.getenv('MYSQL_HOST', 'localhost'),
-        'database': os.getenv('MYSQL_DATABASE', 'cinapps')
+        'host': os.getenv('MYSQL_HOST', 'mysql'),  # Nom du service Docker
+        'database': os.getenv('MYSQL_DATABASE', 'cinapps'),
+        'port': int(os.getenv('MYSQL_PORT', '3306'))
     }
     
     try:
-        logger.info("🔌 Connexion à la base de données...")
+        logger.info("🔌 Connexion à la base de données Docker...")
+        logger.info(f"Host: {db_config['host']}, Port: {db_config['port']}")
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
         
