@@ -212,8 +212,7 @@ class MySQLStorePipeline:
             return result[0]
         self.cursor.execute("INSERT INTO table_personnes (nom) VALUES (%s)", (person_name,))
         self.conn.commit()
-        logging.info(f"✅ Personne '{person_name}' insérée en base. Délai de 1 seconde...")
-        time.sleep(1)  # Délai de 1 seconde après l'insertion d'une personne
+        logging.info(f"✅ Personne '{person_name}' insérée en base.")
         return self.cursor.lastrowid
 
     def link_person_to_film(self, film_id, person_id, role):
