@@ -6,13 +6,14 @@ import logging
 import time
 from parsel import Selector  # Scrapy utilise Parsel pour le parsing HTML
 
-logging.basicConfig(level=logging.info)
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class NewFilmsPipeline:
     def process_item(self, item, spider):
-        logger.info(f"✅ Avant nettoyage : {item}")
+        logging.info(f"✅ Avant nettoyage : {item}")
 
         # On retire complètement le champ "anecdotes"
         if 'anecdotes' in item:
@@ -70,7 +71,7 @@ class NewFilmsPipeline:
             if item['acteurs'] and item['acteurs'][0] == 'Avec':
                 item['acteurs'].pop(0)
 
-        logger.info(f"✅ Après nettoyage : {item}")
+        logging.info(f"✅ Après nettoyage : {item}")
         return item
 
     def clean_duration(self, duration_html):
@@ -144,7 +145,7 @@ class MySQLStorePipeline:
         try:
             self.conn = mysql.connector.connect(**self.db_info)
             self.cursor = self.conn.cursor()
-            self.clean_database()
+            self.clean_database() 
         except MySQLError as e:
             spider.logger.error(f"Erreur de connexion à la base de données : {e}")
             raise
@@ -155,11 +156,11 @@ class MySQLStorePipeline:
 
     def clean_database(self):
         try:
-            logger.info("�� Début du nettoyage de la base de données...")
+            logging.info("🧹 Début du nettoyage de la base de données...")
             
             # Désactiver les contraintes de clé étrangère
             self.cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
-            logger.info("✅ Contraintes de clé étrangère désactivées")
+            logging.info("✅ Contraintes de clé étrangère désactivées")
             
             # Vider toutes les tables dans l'ordre correct
             tables_to_clean = [
@@ -171,26 +172,33 @@ class MySQLStorePipeline:
             
             for table in tables_to_clean:
                 try:
-                    self.cursor.execute(f"DELETE FROM {table};")
-                    self.cursor.execute(f"ALTER TABLE {table} AUTO_INCREMENT = 1;")
-                    logger.info(f"✅ Table {table} vidée et auto-increment réinitialisé")
+                    # Utiliser TRUNCATE pour vider complètement
+                    self.cursor.execute(f"TRUNCATE TABLE {table};")
+                    logging.info(f"✅ Table {table} vidée avec TRUNCATE")
                 except MySQLError as e:
-                    logging.error(f"❌ Erreur lors du vidage de {table}: {e}")
-                    continue
+                    logging.error(f"❌ Erreur TRUNCATE sur {table}: {e}")
+                    # Fallback avec DELETE
+                    try:
+                        self.cursor.execute(f"DELETE FROM {table};")
+                        self.cursor.execute(f"ALTER TABLE {table} AUTO_INCREMENT = 1;")
+                        logging.info(f"✅ Table {table} vidée avec DELETE")
+                    except MySQLError as e2:
+                        logging.error(f"❌ Erreur DELETE sur {table}: {e2}")
+                        continue
             
             # Réactiver les contraintes
             self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-            logger.info("✅ Contraintes de clé étrangère réactivées")
+            logging.info("✅ Contraintes de clé étrangère réactivées")
             
             self.conn.commit()
-            logger.info("🎉 Base de données nettoyée avec succès avant le crawl.")
+            logging.info("🎉 Base de données nettoyée avec succès avant le crawl.")
             
         except MySQLError as e:
             logging.error(f"❌ Erreur critique lors du nettoyage de la BDD: {e}")
             # Essayer de réactiver les contraintes en cas d'erreur
             try:
                 self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-                logger.info("✅ Contraintes de clé étrangère réactivées après erreur")
+                logging.info("✅ Contraintes de clé étrangère réactivées après erreur")
             except:
                 logging.error("⚠️ Impossible de réactiver les contraintes")
             self.conn.rollback()
@@ -235,7 +243,7 @@ class MySQLStorePipeline:
         logging.debug(f"Executing insert_film with params={params}")
         self.cursor.execute(query, params)
         self.conn.commit()
-        logger.info(f"✅ Film inséré en base. Délai de 1 seconde...")
+        logging.info(f"✅ Film inséré en base. Délai de 1 seconde...")
         time.sleep(1)  # Délai de 1 seconde après l'insertion du film
         return self.cursor.lastrowid
 
@@ -246,7 +254,7 @@ class MySQLStorePipeline:
             return result[0]
         self.cursor.execute("INSERT INTO table_personnes (nom) VALUES (%s)", (person_name,))
         self.conn.commit()
-        logger.info(f"✅ Personne '{person_name}' insérée en base.")
+        logging.info(f"✅ Personne '{person_name}' insérée en base.")
         return self.cursor.lastrowid
 
     def link_person_to_film(self, film_id, person_id, role):
@@ -257,6 +265,6 @@ class MySQLStorePipeline:
         """
         self.cursor.execute(query, (film_id, person_id, role))
         self.conn.commit()
-        logger.info(f"✅ Enregistrement de {person_id} ({role}) pour le film {film_id}")
-        logger.info(f"✅ Film {film_id} enregistré en base.")
+        logging.info(f"✅ Enregistrement de {person_id} ({role}) pour le film {film_id}")
+        logging.info(f"✅ Film {film_id} enregistré en base.")
       
