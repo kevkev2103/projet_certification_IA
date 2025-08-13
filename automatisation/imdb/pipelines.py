@@ -226,4 +226,4 @@ class MySQLStorePipeline:
         self.conn.commit()
         logging.info(f"✅ Enregistrement de {person_id} ({role}) pour le film {film_id}")
         logging.info(f"✅ Film {film_id} enregistré en base.")
-        time.sleep(1)  # Délai de 1 seconde après l'insertion d'une participation
+      
