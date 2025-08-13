@@ -145,7 +145,7 @@ class MySQLStorePipeline:
         try:
             self.conn = mysql.connector.connect(**self.db_info)
             self.cursor = self.conn.cursor()
-            self.clean_database() 
+            logging.info("✅ Connexion à la base de données établie")
         except MySQLError as e:
             spider.logger.error(f"Erreur de connexion à la base de données : {e}")
             raise
@@ -153,56 +153,6 @@ class MySQLStorePipeline:
     def close_spider(self, spider):
         self.cursor.close()
         self.conn.close()
-
-    def clean_database(self):
-        try:
-            logging.info("🧹 Début du nettoyage de la base de données...")
-            
-            # Désactiver les contraintes de clé étrangère
-            self.cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
-            logging.info("✅ Contraintes de clé étrangère désactivées")
-            
-            # Vider toutes les tables dans l'ordre correct
-            tables_to_clean = [
-                'table_predictions',
-                'table_participations', 
-                'table_films',
-                'table_personnes'
-            ]
-            
-            for table in tables_to_clean:
-                try:
-                    # Utiliser TRUNCATE pour vider complètement
-                    self.cursor.execute(f"TRUNCATE TABLE {table};")
-                    logging.info(f"✅ Table {table} vidée avec TRUNCATE")
-                except MySQLError as e:
-                    logging.error(f"❌ Erreur TRUNCATE sur {table}: {e}")
-                    # Fallback avec DELETE
-                    try:
-                        self.cursor.execute(f"DELETE FROM {table};")
-                        self.cursor.execute(f"ALTER TABLE {table} AUTO_INCREMENT = 1;")
-                        logging.info(f"✅ Table {table} vidée avec DELETE")
-                    except MySQLError as e2:
-                        logging.error(f"❌ Erreur DELETE sur {table}: {e2}")
-                        continue
-            
-            # Réactiver les contraintes
-            self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-            logging.info("✅ Contraintes de clé étrangère réactivées")
-            
-            self.conn.commit()
-            logging.info("🎉 Base de données nettoyée avec succès avant le crawl.")
-            
-        except MySQLError as e:
-            logging.error(f"❌ Erreur critique lors du nettoyage de la BDD: {e}")
-            # Essayer de réactiver les contraintes en cas d'erreur
-            try:
-                self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-                logging.info("✅ Contraintes de clé étrangère réactivées après erreur")
-            except:
-                logging.error("⚠️ Impossible de réactiver les contraintes")
-            self.conn.rollback()
-            raise
 
     def process_item(self, item, spider):
         film_id = self.insert_film(item)
