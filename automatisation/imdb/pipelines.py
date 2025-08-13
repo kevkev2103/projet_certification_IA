@@ -6,9 +6,13 @@ import logging
 import time
 from parsel import Selector  # Scrapy utilise Parsel pour le parsing HTML
 
+logging.basicConfig(level=logging.info)
+logger = logging.getLogger(__name__)
+
+
 class NewFilmsPipeline:
     def process_item(self, item, spider):
-        logging.info(f"✅ Avant nettoyage : {item}")
+        logger.info(f"✅ Avant nettoyage : {item}")
 
         # On retire complètement le champ "anecdotes"
         if 'anecdotes' in item:
@@ -66,7 +70,7 @@ class NewFilmsPipeline:
             if item['acteurs'] and item['acteurs'][0] == 'Avec':
                 item['acteurs'].pop(0)
 
-        logging.info(f"✅ Après nettoyage : {item}")
+        logger.info(f"✅ Après nettoyage : {item}")
         return item
 
     def clean_duration(self, duration_html):
@@ -151,11 +155,11 @@ class MySQLStorePipeline:
 
     def clean_database(self):
         try:
-            logging.info("�� Début du nettoyage de la base de données...")
+            logger.info("�� Début du nettoyage de la base de données...")
             
             # Désactiver les contraintes de clé étrangère
             self.cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
-            logging.info("✅ Contraintes de clé étrangère désactivées")
+            logger.info("✅ Contraintes de clé étrangère désactivées")
             
             # Vider toutes les tables dans l'ordre correct
             tables_to_clean = [
@@ -169,24 +173,24 @@ class MySQLStorePipeline:
                 try:
                     self.cursor.execute(f"DELETE FROM {table};")
                     self.cursor.execute(f"ALTER TABLE {table} AUTO_INCREMENT = 1;")
-                    logging.info(f"✅ Table {table} vidée et auto-increment réinitialisé")
+                    logger.info(f"✅ Table {table} vidée et auto-increment réinitialisé")
                 except MySQLError as e:
                     logging.error(f"❌ Erreur lors du vidage de {table}: {e}")
                     continue
             
             # Réactiver les contraintes
             self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-            logging.info("✅ Contraintes de clé étrangère réactivées")
+            logger.info("✅ Contraintes de clé étrangère réactivées")
             
             self.conn.commit()
-            logging.info("🎉 Base de données nettoyée avec succès avant le crawl.")
+            logger.info("🎉 Base de données nettoyée avec succès avant le crawl.")
             
         except MySQLError as e:
             logging.error(f"❌ Erreur critique lors du nettoyage de la BDD: {e}")
             # Essayer de réactiver les contraintes en cas d'erreur
             try:
                 self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-                logging.info("✅ Contraintes de clé étrangère réactivées après erreur")
+                logger.info("✅ Contraintes de clé étrangère réactivées après erreur")
             except:
                 logging.error("⚠️ Impossible de réactiver les contraintes")
             self.conn.rollback()
@@ -231,7 +235,7 @@ class MySQLStorePipeline:
         logging.debug(f"Executing insert_film with params={params}")
         self.cursor.execute(query, params)
         self.conn.commit()
-        logging.info(f"✅ Film inséré en base. Délai de 1 seconde...")
+        logger.info(f"✅ Film inséré en base. Délai de 1 seconde...")
         time.sleep(1)  # Délai de 1 seconde après l'insertion du film
         return self.cursor.lastrowid
 
@@ -242,7 +246,7 @@ class MySQLStorePipeline:
             return result[0]
         self.cursor.execute("INSERT INTO table_personnes (nom) VALUES (%s)", (person_name,))
         self.conn.commit()
-        logging.info(f"✅ Personne '{person_name}' insérée en base.")
+        logger.info(f"✅ Personne '{person_name}' insérée en base.")
         return self.cursor.lastrowid
 
     def link_person_to_film(self, film_id, person_id, role):
@@ -253,6 +257,6 @@ class MySQLStorePipeline:
         """
         self.cursor.execute(query, (film_id, person_id, role))
         self.conn.commit()
-        logging.info(f"✅ Enregistrement de {person_id} ({role}) pour le film {film_id}")
-        logging.info(f"✅ Film {film_id} enregistré en base.")
+        logger.info(f"✅ Enregistrement de {person_id} ({role}) pour le film {film_id}")
+        logger.info(f"✅ Film {film_id} enregistré en base.")
       
