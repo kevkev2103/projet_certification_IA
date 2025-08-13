@@ -151,58 +151,46 @@ class MySQLStorePipeline:
 
     def clean_database(self):
         try:
-            logging.info("🧹 Début du nettoyage de la base de données...")
+            logging.info("�� Début du nettoyage de la base de données...")
             
-            # Désactiver complètement les contraintes de clé étrangère
+            # Désactiver les contraintes de clé étrangère
             self.cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
             logging.info("✅ Contraintes de clé étrangère désactivées")
             
-            # ORDRE CRUCIAL : nettoyer d'abord les tables enfant, puis les parents
-            # L'ordre doit respecter les dépendances de clés étrangères
+            # Vider toutes les tables dans l'ordre correct
             tables_to_clean = [
-                'table_predictions',      # Table enfant (référence table_films)
-                'table_participations',   # Table enfant (référence table_films et table_personnes)
-                'table_films',           # Table parent (référencée par predictions et participations)
-                'table_personnes'        # Table parent (référencée par participations)
+                'table_predictions',
+                'table_participations', 
+                'table_films',
+                'table_personnes'
             ]
             
             for table in tables_to_clean:
                 try:
-                    # Utiliser DELETE au lieu de TRUNCATE pour plus de compatibilité
                     self.cursor.execute(f"DELETE FROM {table};")
-                    # Réinitialiser l'auto-increment si nécessaire
                     self.cursor.execute(f"ALTER TABLE {table} AUTO_INCREMENT = 1;")
                     logging.info(f"✅ Table {table} vidée et auto-increment réinitialisé")
                 except MySQLError as e:
-                    logging.info(f"❌ Erreur lors du vidage de {table}: {e}")
-                    # En cas d'erreur, on continue avec les autres tables
+                    logging.error(f"❌ Erreur lors du vidage de {table}: {e}")
                     continue
             
-            # Commit toutes les opérations
-            self.conn.commit()
-            logging.info("✅ Toutes les opérations de nettoyage commitées")
-            
-            # Réactiver les contraintes de clé étrangère
+            # Réactiver les contraintes
             self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
             logging.info("✅ Contraintes de clé étrangère réactivées")
             
+            self.conn.commit()
             logging.info("🎉 Base de données nettoyée avec succès avant le crawl.")
             
         except MySQLError as e:
-            logging.info(f"❌ Erreur critique lors du nettoyage de la BDD: {e}")
-            # Toujours essayer de réactiver les contraintes en cas d'erreur
+            logging.error(f"❌ Erreur critique lors du nettoyage de la BDD: {e}")
+            # Essayer de réactiver les contraintes en cas d'erreur
             try:
                 self.cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
                 logging.info("✅ Contraintes de clé étrangère réactivées après erreur")
-            except MySQLError as e2:
-                logging.info(f"⚠️ Impossible de réactiver les contraintes: {e2}")
-            
-            # Rollback en cas d'erreur
+            except:
+                logging.error("⚠️ Impossible de réactiver les contraintes")
             self.conn.rollback()
-            logging.info("🔄 Rollback effectué")
-            
-            # Re-lever l'erreur pour que l'application sache qu'il y a eu un problème
-            raise e
+            raise
 
     def process_item(self, item, spider):
         film_id = self.insert_film(item)
