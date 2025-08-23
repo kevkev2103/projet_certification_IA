@@ -14,82 +14,82 @@ API_BASE_URL = "http://localhost:8002"
 LOGIN_URL = f"{API_BASE_URL}/auth/token"
 PREDICTION_URL = f"{API_BASE_URL}/prediction/"
 
-# Données de test pour simuler différents scénarios
+# Données de test pour simuler différents scénarios avec des films existants
 TEST_SCENARIOS = [
-    # Scénario normal
+    # Scénario normal - Film existant (Alpha)
     {
-        "name": "Film normal",
+        "name": "Film normal (Alpha)",
         "data": {
-            "id_film": 1,
-            "budget": 50000000,
-            "duree": 120,
-            "genre": "Action",
-            "pays": "USA",
-            "salles_premiere_semaine": 3000,
+            "id_film": 75,
+            "budget": 5000000
+            "duree": 128,
+            "genre": "Drame",
+            "pays": "France",
+            "salles_premiere_semaine": 594,
             "scoring_acteurs_realisateurs": 7.5,
             "coeff_studio": 8,
             "year": 2024,
             "is_fictif": False
         }
     },
-    # Scénario budget élevé (drift)
+    # Scénario budget élevé (drift) - Film existant (Les Orphelins)
     {
-        "name": "Film gros budget",
+        "name": "Film gros budget (Les Orphelins)",
         "data": {
-            "id_film": 2,
+            "id_film": 81,
             "budget": 200000000,
-            "duree": 150,
+            "duree": 95,
             "genre": "Action",
-            "pays": "USA",
-            "salles_premiere_semaine": 4000,
+            "pays": "France",
+            "salles_premiere_semaine": 620,
             "scoring_acteurs_realisateurs": 8.0,
             "coeff_studio": 9,
             "year": 2024,
             "is_fictif": False
         }
     },
-    # Scénario durée longue (drift)
+    # Scénario durée longue (drift) - Film existant (Barry Lyndon)
     {
-        "name": "Film très long",
+        "name": "Film très long (Barry Lyndon)",
         "data": {
-            "id_film": 3,
+            "id_film": 92,
             "budget": 30000000,
-            "duree": 180,
-            "genre": "Drame",
-            "pays": "France",
-            "salles_premiere_semaine": 800,
+            "duree": 187,
+            "genre": "Aventure",
+            "pays": "Grande-Bretagne",
+            "salles_premiere_semaine": 41,
             "scoring_acteurs_realisateurs": 6.5,
             "coeff_studio": 5,
             "year": 2024,
             "is_fictif": False
         }
     },
-    # Scénario genre rare
+    # Scénario genre rare - Film existant (YUNGBLUD)
     {
-        "name": "Film genre rare",
+        "name": "Film genre rare (YUNGBLUD)",
         "data": {
-            "id_film": 4,
+            "id_film": 83,
             "budget": 40000000,
-            "duree": 100,
-            "genre": "Documentaire",
-            "pays": "UK",
-            "salles_premiere_semaine": 200,
+            "duree": 119,
+            "genre": "Musical",
+            "pays": "U.S.A.",
+            "salles_premiere_semaine": 7,
             "scoring_acteurs_realisateurs": 5.0,
             "coeff_studio": 3,
             "year": 2024,
             "is_fictif": False
         }
     },
-    # Scénario normal
+    # Scénario normal - Film existant (Valeur sentimentale)
     {
-        "name": "Film normal 2",
+        "name": "Film normal 2 (Valeur sentimentale)",
         "data": {
-            "id_film": 5,
+            "id_film": 84,
             "budget": 60000000,
-            "duree": 110,
-            "genre": "Comédie",
+            "duree": 133,
+            "genre": "Comédie dramatique",
             "pays": "France",
-            "salles_premiere_semaine": 1200,
+            "salles_premiere_semaine": 586,
             "scoring_acteurs_realisateurs": 7.0,
             "coeff_studio": 6,
             "year": 2024,
