@@ -23,11 +23,11 @@ docker-compose up -d mysql
 
 # demarrer l'api crud
 cd cinapps_api
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8002
 
 #demarrer l'api IA
 cd API_s
-uvicorn main:app --reload --port 8001
+uvicorn main:app --reload --port 8002
 
 #lancer le scrapping
 cd automatisation
@@ -48,7 +48,7 @@ docker-compose up
 http://localhost:9090
 Clique sur “Status” > “Targets” pour voir l'état "up"
 Puis cliquer sur graph et tapper predictions_total et on voit 18
-verification possible des logs sur http://localhost:8000/metrics
+verification possible des logs sur http://localhost:8002/metrics
 
 #lancer grafana
 http://localhost:3000

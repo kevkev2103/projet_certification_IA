@@ -4,8 +4,8 @@ import requests
 import time
 
 # URLs des APIs
-CRUD_API_URL = "http://localhost:8000"
-ML_API_URL = "http://localhost:8001"
+CRUD_API_URL = "http://localhost:8002"
+ML_API_URL = "http://localhost:8002"
 
 def test_full_auth_flow():
     """Test d'intégration : flux d'authentification complet"""

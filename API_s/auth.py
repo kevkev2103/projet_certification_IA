@@ -39,7 +39,7 @@ verify_api_key = get_current_user
 def authenticate_and_get_token():
     """S'authentifie automatiquement et récupère le token"""
     try:
-        auth_url = "http://localhost:8000/auth/token"
+        auth_url = "http://localhost:8002/auth/token"
         auth_data = {
             "username": "testuser",
             "password": "test123"

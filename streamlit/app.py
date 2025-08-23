@@ -42,9 +42,9 @@ load_dotenv()
 def _norm(url: str) -> str:
     return (url or "").rstrip("/")
 
-# Par défaut en réseau Docker : http://cinapps-api:8000
-URL_API_CRUD = _norm(os.getenv("URL_API_CRUD") or "http://cinapps-api:8000")
-URL_API_PRED = _norm(os.getenv("URL_API_PRED") or "http://cinapps-api:8000")
+# Par défaut en réseau Docker : http://cinapps-api:8002
+URL_API_CRUD = _norm(os.getenv("URL_API_CRUD") or "http://cinapps-api:8002")
+URL_API_PRED = _norm(os.getenv("URL_API_PRED") or "http://cinapps-api:8002")
 
 # Chemin du CSV acteurs (compatible montage fichier)
 ACTEURS_COEF_PATH = os.getenv("ACTEURS_COEF_PATH", "/app/acteurs_coef.csv")

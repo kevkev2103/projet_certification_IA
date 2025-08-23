@@ -23,7 +23,7 @@ DB_CONFIG = {
 }
 
 # Configuration de l'API (APIs fusionnées)
-API_URL_CRUD = os.getenv("API_URL_CRUD", "http://localhost:8000")
+API_URL_CRUD = os.getenv("API_URL_CRUD", "http://localhost:8002")
 API_URL_PREDICTION = API_URL_CRUD + "/prediction/"
 API_TOKEN = os.getenv("API_TOKEN")  # Token depuis les variables d'environnement
 

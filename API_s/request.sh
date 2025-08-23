@@ -4,7 +4,7 @@
 TOKEN="eyJhbGciOiJIUzI1NiIsIn5cCI6IkpXVCJ9.eyJzdWIiOiJkZWJvcmFoIiwiZXhwIjoxNzQ0ODEzMTk4fQ.iggnTfZJMD1vCMYDQaEFkuGe1UG21dY-onMFY3a9FT0"
 
 # appel à l'API de prédiction en passant le token
-curl -X POST http://localhost:8001/prediction/ \
+curl -X POST http://localhost:8002/prediction/ \
      -H "Authorization: Bearer $TOKEN" \
      -H "Content-Type: application/json" \
      -d '{

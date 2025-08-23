@@ -25,13 +25,13 @@ DB_CONFIG = {
     'collation': 'utf8mb4_unicode_ci'
 }
 
-# Configuration de l'API ML (port 8001 SEULEMENT)
-API_URL = "http://localhost:8001/prediction/"
+# Configuration de l'API ML (port 8002 SEULEMENT)
+API_URL = "http://localhost:8002/prediction/"
 
 def authenticate_and_get_token():
     """S'authentifie automatiquement et récupère le token JWT"""
     try:
-        auth_url = "http://localhost:8000/auth/token"
+        auth_url = "http://localhost:8002/auth/token"
         auth_data = {
             "username": "testuser",
             "password": "test123"

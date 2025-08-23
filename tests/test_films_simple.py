@@ -4,7 +4,7 @@ import requests
 
 def get_auth_token():
     """Fonction helper : récupérer un token d'auth"""
-    url = "http://localhost:8000/auth/token"
+    url = "http://localhost:8002/auth/token"
     data = {"username": "testuser", "password": "test123"}
     response = requests.post(url, data=data)
     return response.json()["access_token"]
@@ -13,7 +13,7 @@ def test_get_films_with_auth():
     """Test basique : récupérer la liste des films"""
     # ARRANGE
     token = get_auth_token()
-    url = "http://localhost:8000/films/"
+    url = "http://localhost:8002/films/"
     headers = {"Authorization": f"Bearer {token}"}
     
     # ACT
@@ -25,7 +25,7 @@ def test_get_films_with_auth():
 def test_get_films_without_auth():
     """Test basique : accès refusé sans authentification"""
     # ARRANGE
-    url = "http://localhost:8000/films/"
+    url = "http://localhost:8002/films/"
     
     # ACT
     response = requests.get(url)
@@ -37,7 +37,7 @@ def test_create_film():
     """Test basique : créer un film"""
     # ARRANGE
     token = get_auth_token()
-    url = "http://localhost:8000/films/"
+    url = "http://localhost:8002/films/"
     headers = {"Authorization": f"Bearer {token}"}
     
     film_data = {
@@ -56,7 +56,7 @@ def test_create_film():
 def test_create_film_without_auth():
     """Test basique : création refusée sans auth"""
     # ARRANGE
-    url = "http://localhost:8000/films/"
+    url = "http://localhost:8002/films/"
     film_data = {
         "titre": "Film Test Sans Auth",
         "annee_sortie": 2024,

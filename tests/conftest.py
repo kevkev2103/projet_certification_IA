@@ -17,7 +17,7 @@ def setup_database():
 @pytest.fixture
 def api_base_url():
     """URL de base pour les tests"""
-    return "http://localhost:8000"
+    return "http://localhost:8002"
 
 @pytest.fixture  
 def valid_user():

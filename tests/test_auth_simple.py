@@ -5,7 +5,7 @@ import requests
 def test_login_existing_user():
     """Test basique : connexion avec utilisateur existant"""
     # ARRANGE (Préparer)
-    url = "http://localhost:8000/auth/token"
+    url = "http://localhost:8002/auth/token"
     data = {
         "username": "testuser",
         "password": "test123"
@@ -23,7 +23,7 @@ def test_login_existing_user():
 def test_login_wrong_password():
     """Test basique : mauvais mot de passe"""
     # ARRANGE
-    url = "http://localhost:8000/auth/token"
+    url = "http://localhost:8002/auth/token"
     data = {
         "username": "testuser", 
         "password": "wrongpassword"
@@ -38,7 +38,7 @@ def test_login_wrong_password():
 def test_get_user_info_without_token():
     """Test basique : accès refusé sans token"""
     # ARRANGE
-    url = "http://localhost:8000/auth/users/me"
+    url = "http://localhost:8002/auth/users/me"
     
     # ACT
     response = requests.get(url)

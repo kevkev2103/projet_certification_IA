@@ -2,8 +2,8 @@
 import pytest
 import requests
 
-# Configuration API - L'API ML est intégrée dans l'API CRUD sur le port 8000
-API_URL = "http://localhost:8000"
+# Configuration API - L'API ML est intégrée dans l'API CRUD sur le port 8002
+API_URL = "http://localhost:8002"
 
 def get_auth_token():
     """Fonction helper : récupérer un token JWT pour l'API ML"""
