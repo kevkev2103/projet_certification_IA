@@ -18,16 +18,8 @@ Application d'intelligence artificielle pour aider les exploitants de cinéma à
 
 🐳 Conteneurisation : Déploiement Docker avec orchestration
 
-cinapps/
-├── 🎯 ML/                    # Modèles et notebooks ML
-├── 🌐 cinapps_api/           # API FastAPI principale
-├── 📱 streamlit/             # Interface utilisateur
-├── 🕷️ automatisation/        # Scraping Scrapy
-├── 🗄️ mysql-init/            # Scripts d'initialisation BDD
-├── 📊 monitoring/            # Configuration Prometheus/Grafana
-├── 🧪 tests/                 # Tests automatisés
-├── 📚 documentation/         # Documentation technique
-└── 🐳 docker-compose.yml     # Orchestration des services
+<img width="581" height="206" alt="image" src="https://github.com/user-attachments/assets/0cef7bf4-87fd-4625-af18-1cd4a08e8dcf" />
+
 
 🚀 Prérequis techniques
 
@@ -87,18 +79,8 @@ docker compose run scraper-service
 
 🏗️ Architecture technique
 
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Interface     │    │   API FastAPI   │    │   Base MySQL    │
-│   Streamlit     │◄──►│   + JWT Auth    │◄──►│   + Relations   │
-│   (Port 8501)   │    │   (Port 8002)   │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Scraping      │    │   Modèle ML     │    │   Monitoring    │
-│   Scrapy        │    │   Random Forest │    │   Prometheus    │
-│   Allociné      │    │   + Pipeline    │    │   + Grafana     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+<img width="542" height="267" alt="image" src="https://github.com/user-attachments/assets/0de07642-8acf-4d39-847d-72ac718f0849" />
+
 
 
 🧪 Tests
@@ -147,3 +129,4 @@ Monitoring en temps réel
 👨‍💻 Contributeurs
 
 Projet réalisé par : Kevin - Certification IA
+
